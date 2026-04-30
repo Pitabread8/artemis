@@ -1,0 +1,370 @@
+---
+---
+
+<section class="spx-section">
+  <div class="spx-wrap">
+    <h3 class="spx-h3">Twenty years of SpaceX cost ratios</h3>
+    <p class="spx-lede">Each dot is one cost claim.</p>
+    <div class="spx-legend" id="spx-progress-legend"></div>
+    <svg id="spx-progress-chart" viewBox="0 0 920 520"></svg>
+    <div class="spx-ctrl">
+      <button class="spx-play" id="spx-play">▶ Play</button>
+      <span>2002</span>
+      <input type="range" id="spx-slider" min="2002" max="2021" step="1" value="2002">
+      <span>2021</span>
+      <span class="spx-year" id="spx-yr">2002</span>
+    </div>
+  </div>
+</section>
+
+<section class="spx-section spx-section--wide">
+  <div class="spx-wrap spx-wrap--wide">
+    <p class="spx-prose">If SpaceX had built Artemis, how much cheaper would it be?</p>
+    <svg id="spx-waterfall-chart" viewBox="0 0 1180 600"></svg>
+  </div>
+</section>
+
+<div class="spx-tip" id="spx-tip"></div>
+
+<style is:global>
+  .spx-section { padding: 56px 0 24px; }
+  .spx-section + .spx-section { border-top: 1px solid #eee; margin-top: 28px; }
+  .spx-wrap { max-width: 920px; margin: 0 auto; padding: 0 24px; }
+  .spx-wrap--wide { max-width: 1180px; }
+
+  .spx-h3 { font-size: 20px; font-weight: 600; margin: 0 0 8px; color: #141414; }
+  .spx-lede { color:#62666d; font-size: 14px; line-height: 1.55; max-width: 680px; margin: 0 0 24px; }
+  .spx-prose { font-size: 1rem; line-height: 1.7; color: #141414; max-width: 42rem; margin: 0 0 24px; }
+
+  #spx-progress-chart, #spx-waterfall-chart {
+    display: block; width: 100%; height: auto; overflow: visible;
+  }
+
+  .spx-axis path, .spx-axis line { stroke:#e5e5e5; }
+  .spx-axis text { fill:#666; font-size:12px; }
+  .spx-axis .domain { stroke:#111; }
+
+  .spx-dot { cursor:pointer; transition: r .15s ease, opacity .2s ease; }
+  .spx-trend { fill:none; stroke:#111; stroke-width:1.75; opacity:.55;
+    stroke-linecap:round; stroke-linejoin:round; }
+
+  .spx-ctrl { display:flex; align-items:center; gap:18px; margin-top:24px;
+    font-size:13px; color:#333; font-variant-numeric: tabular-nums; }
+  .spx-ctrl input[type=range] { flex:1; accent-color:#111; height:2px; }
+  .spx-year { font-weight:600; min-width:44px; font-size:18px; color:#111; }
+  .spx-play { background:#111; color:#fff; border:none; padding:7px 14px;
+    border-radius:5px; cursor:pointer; font-size:13px; min-width:64px;
+    font-family:inherit; }
+  .spx-play:hover { background:#333; }
+
+  .spx-legend { display:flex; gap:24px; margin-bottom:20px; font-size:12px; color:#555; flex-wrap:wrap; }
+  .spx-legend span { display:inline-flex; align-items:center; gap:6px; }
+  .spx-legend i { width:9px; height:9px; border-radius:50%; display:inline-block; }
+
+  .spx-bar-nasa { fill:#1f2937; }
+  .spx-bar-spx  { fill:#1f6feb; }
+  .spx-bar-drop { fill:#ef4444; opacity:.85; }
+  .spx-bar:hover { opacity:.7; cursor:pointer; }
+  .spx-conn { stroke:#cbd5e1; stroke-dasharray:3 3; stroke-width:1; }
+  .spx-label-top { font-size:11px; fill:#374151; font-variant-numeric:tabular-nums; }
+  .spx-label-step { font-size:10.5px; fill:#6b7280; }
+  .spx-label-cat { font-size:10px; fill:#374151; }
+  .spx-total-savings { font-size:14px; font-weight:600; fill:#dc2626; }
+
+  .spx-tip { position:absolute; pointer-events:none; background:#111; color:#fff;
+    padding:8px 11px; border-radius:5px; font-size:12px; line-height:1.5;
+    opacity:0; transition: opacity .12s; max-width:280px; z-index: 50;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15); }
+  .spx-tip b { color:#fff; }
+  .spx-tip .spx-muted { color:#aaa; font-size:11px; }
+  .spx-tip .spx-save { color:#fca5a5; }
+</style>
+
+<script>
+  import * as d3 from 'd3';
+
+  const tip = d3.select('#spx-tip');
+  const showTip = (e: PointerEvent | MouseEvent, html: string) =>
+    tip.html(html).style('opacity', 1)
+      .style('left', (e.pageX + 14) + 'px').style('top', (e.pageY + 14) + 'px');
+  const moveTip = (e: PointerEvent | MouseEvent) =>
+    tip.style('left', (e.pageX + 14) + 'px').style('top', (e.pageY + 14) + 'px');
+  const hideTip = () => tip.style('opacity', 0);
+
+  type Claim = { y: number; c: string; ip: number; sp: number; d: string; ratio?: number; jx?: number };
+
+  const PROGRESS_DATA: Claim[] = [
+    {"y":2002,"c":"Avionics computer / flight hardware","ip":5000000,"sp":500,"d":"avionics"},
+    {"y":2002,"c":"SpaceX fixed-price launch contracts vs. industry cost-plus","ip":1000000000,"sp":6000000,"d":"launch"},
+    {"y":2002,"c":"Falcon 1 launch service (550-lb class payload)","ip":290000000,"sp":6900000,"d":"launch"},
+    {"y":2002,"c":"SpaceX initial capital budget vs. government EELV program","ip":500000000,"sp":100000000,"d":"launch"},
+    {"y":2003,"c":"Small satellite launch vehicle (Falcon 1)","ip":150000000,"sp":6000000,"d":"launch"},
+    {"y":2003,"c":"SpaceX component make vs. buy (in-house)","ip":50000,"sp":2000,"d":"manufacturing"},
+    {"y":2004,"c":"Electro-mechanical actuator (Falcon 1 gimbal)","ip":120000,"sp":3900,"d":"propulsion"},
+    {"y":2007,"c":"Cape Canaveral launch pad infrastructure","ip":100000000,"sp":70000000,"d":"launch"},
+    {"y":2008,"c":"NRO Eastern Processing Facility (satellite hangar)","ip":2000000000,"sp":1000000,"d":"manufacturing"},
+    {"y":2008,"c":"Avionics / flight computing system","ip":10000000,"sp":10000,"d":"avionics"},
+    {"y":2008,"c":"Pressure vessel / LOX storage tank","ip":3000000,"sp":86001,"d":"structures"},
+    {"y":2008,"c":"Florida launch pad mod (vs. Boeing Delta IV)","ip":375000000,"sp":30000000,"d":"launch"},
+    {"y":2008,"c":"Radio / communications unit","ip":50000,"sp":5000,"d":"avionics"},
+    {"y":2008,"c":"SpaceX CRS vs. Orbital Sciences CRS — per mission","ip":1900000000,"sp":1600000000,"d":"launch"},
+    {"y":2010,"c":"Falcon 9 launch vehicle (orbital rocket)","ip":160000000,"sp":62000000,"d":"launch"},
+    {"y":2011,"c":"Aerospace-quality machined parts (make-vs-buy)","ip":75000,"sp":5000,"d":"manufacturing"},
+    {"y":2012,"c":"Falcon 9 payload fairing","ip":5000000,"sp":1000000,"d":"structures"},
+    {"y":2012,"c":"ULA/EELV launches (cost-plus)","ip":400000000,"sp":100000000,"d":"launch"},
+    {"y":2013,"c":"Hyperloop vs. California High-Speed Rail","ip":60000000000,"sp":6000000000,"d":"other"},
+    {"y":2013,"c":"SES commercial geo-satellite launch","ip":160000000,"sp":60000000,"d":"launch"},
+    {"y":2014,"c":"Mars transportation cost per person","ip":1000000000,"sp":500000,"d":"launch"},
+    {"y":2014,"c":"Falcon 9 vs ULA EELV (national security)","ip":383000000,"sp":90000000,"d":"launch"},
+    {"y":2014,"c":"Commercial Crew contract (Boeing vs SpaceX)","ip":4200000000,"sp":2600000000,"d":"launch"},
+    {"y":2015,"c":"Crew Dragon spacesuit","ip":1000000,"sp":10000,"d":"manufacturing"},
+    {"y":2016,"c":"ULA GPS satellite launch vs. SpaceX bid","ip":162500000,"sp":60000000,"d":"launch"},
+    {"y":2021,"c":"Europa Clipper launch (SLS vs. Falcon Heavy)","ip":2300000000,"sp":178000000,"d":"launch"},
+  ];
+
+  PROGRESS_DATA.forEach(d => { d.ratio = d.ip / d.sp; });
+
+  const COLOR: Record<string, string> = {
+    launch:        '#2563eb',
+    avionics:      '#dc2626',
+    propulsion:    '#ea580c',
+    manufacturing: '#16a34a',
+    other:         '#737373',
+    structures:    '#9333ea',
+  };
+  const DOMAINS = ['launch','avionics','propulsion','manufacturing','structures','other'];
+
+  const lg = d3.select('#spx-progress-legend');
+  DOMAINS.forEach(k => lg.append('span').html(`<i style="background:${COLOR[k]}"></i>${k}`));
+
+  const PW = 920, PH = 520, PM = { t: 32, r: 32, b: 56, l: 72 };
+  const piw = PW - PM.l - PM.r, pih = PH - PM.t - PM.b;
+  const pgRoot = d3.select('#spx-progress-chart');
+  const pg = pgRoot.append('g').attr('transform', `translate(${PM.l},${PM.t})`);
+
+  const px = d3.scaleLinear().domain([2001, 2021.8]).range([0, piw]);
+  const py = d3.scaleLog().domain([0.6, 300000]).range([pih, 0]);
+
+  pg.append('g').attr('class', 'spx-axis')
+    .attr('transform', `translate(0,${pih})`)
+    .call(d3.axisBottom(px).tickValues([2002,2006,2010,2014,2018,2021])
+      .tickFormat(d3.format('d')).tickSize(0).tickPadding(10));
+  pg.append('g').attr('class', 'spx-axis')
+    .call(d3.axisLeft(py).ticks(6, (d: any) => d3.format(',')(d) + '×').tickSize(0).tickPadding(10));
+
+  pg.append('text').attr('font-size', 11).attr('fill', '#666')
+    .attr('x', -8).attr('y', -14).attr('text-anchor', 'start')
+    .text('× times cheaper than industry');
+
+  const yearCounts = d3.rollup(PROGRESS_DATA, v => v.length, d => d.y);
+  const seen: Record<number, number> = {};
+  PROGRESS_DATA.forEach(d => {
+    seen[d.y] = (seen[d.y] || 0);
+    const n = yearCounts.get(d.y)!, i = seen[d.y]++;
+    d.jx = n === 1 ? 0 : (i - (n - 1) / 2) * 9;
+  });
+
+  const byYear = d3.rollups(PROGRESS_DATA,
+      v => Math.exp(d3.mean(v, d => Math.log(d.ratio!))!), d => d.y)
+    .map(([year, gm]) => ({ year, gm }))
+    .sort((a, b) => a.year - b.year);
+
+  const trendLine = d3.line<{ year: number; gm: number }>()
+    .x(d => px(d.year)).y(d => py(d.gm))
+    .curve(d3.curveMonotoneX);
+
+  pg.append('path').datum(byYear).attr('class', 'spx-trend').attr('d', trendLine);
+
+  const dots = pg.selectAll('circle.spx-dot').data(PROGRESS_DATA).enter().append('circle')
+    .attr('class', 'spx-dot')
+    .attr('cx', d => px(d.y) + d.jx!)
+    .attr('cy', d => py(d.ratio!))
+    .attr('r', 7)
+    .attr('fill', d => COLOR[d.d] ?? COLOR.other)
+    .attr('fill-opacity', 0.85)
+    .attr('stroke', '#fff').attr('stroke-width', 1.5)
+    .on('mouseover', (e, d) => showTip(e,
+      `<b>${d.c}</b><br><span class="spx-muted">${d.y} · ${d.d}</span><br>` +
+      `${d3.format(',.0f')(d.ratio!)}× cheaper`))
+    .on('mousemove', moveTip)
+    .on('mouseout', hideTip);
+
+  const slider = document.getElementById('spx-slider') as HTMLInputElement;
+  const yrLbl = document.getElementById('spx-yr')!;
+  const playBtn = document.getElementById('spx-play')!;
+
+  function updateYear(yr: number) {
+    slider.value = String(yr);
+    yrLbl.textContent = String(yr);
+    dots.attr('fill-opacity', d => d.y === yr ? 1 : 0.55)
+        .attr('stroke', d => d.y === yr ? '#111' : '#fff')
+        .attr('stroke-width', d => d.y === yr ? 2 : 1.5)
+        .attr('r', d => d.y === yr ? 8 : 6);
+  }
+
+  let timer: ReturnType<typeof setInterval> | null = null;
+  const stopPlay = () => {
+    if (timer) { clearInterval(timer); timer = null; }
+    playBtn.textContent = '▶ Play';
+  };
+  const startPlay = () => {
+    let yr = +slider.value;
+    if (yr >= 2021) yr = 2002;
+    updateYear(yr);
+    playBtn.textContent = '❚❚ Pause';
+    timer = setInterval(() => {
+      yr += 1;
+      if (yr > 2021) { stopPlay(); return; }
+      updateYear(yr);
+    }, 700);
+  };
+
+  playBtn.addEventListener('click', () => timer ? stopPlay() : startPlay());
+  slider.addEventListener('input', e => { stopPlay(); updateYear(+(e.target as HTMLInputElement).value); });
+  updateYear(2002);
+
+  type Swap = { sys: string; comp: string; nasa: number; spx: number; delta?: number };
+
+  const SWAPS: Swap[] = [
+    {sys:'SLS',     comp:'Core stage (Block 1B)',          nasa:2500,    spx:90},
+    {sys:'SLS',     comp:'Solid Rocket Booster pair',      nasa:640,     spx:30},
+    {sys:'SLS',     comp:'4× RS-25 engines',               nasa:580,     spx:4},
+    {sys:'Ground',  comp:'EGS operations',                 nasa:568,     spx:15},
+    {sys:'Gateway', comp:'PPE+HALO modules (1/4 mission)', nasa:374.25,  spx:50},
+    {sys:'Ground',  comp:'Mobile Launcher 2 (1/10)',       nasa:270,     spx:10},
+    {sys:'Orion',   comp:'European Service Module',        nasa:235,     spx:15},
+    {sys:'Suits',   comp:'Lunar EVA spacesuit pair',       nasa:228.5,   spx:15},
+    {sys:'Orion',   comp:'Launch Abort System',            nasa:200,     spx:5},
+    {sys:'Orion',   comp:'Orion crew module',              nasa:250,     spx:60},
+    {sys:'SLS',     comp:'ICPS upper stage',               nasa:100,     spx:10},
+    {sys:'Gateway', comp:'Gateway launch (1/4)',           nasa:82.95,   spx:24.25},
+  ];
+  const HLS = 2020;
+
+  SWAPS.forEach(d => { d.delta = d.nasa - d.spx; });
+  const NASA_TOTAL = d3.sum(SWAPS, d => d.nasa) + HLS;
+  const SPX_TOTAL  = d3.sum(SWAPS, d => d.spx)  + HLS;
+
+  const sysGroups = Array.from(d3.group(SWAPS, d => d.sys), ([sys, items]) => ({
+    sys,
+    items: items.slice().sort((a, b) => b.delta! - a.delta!),
+    total: d3.sum(items, d => d.delta!),
+  })).sort((a, b) => b.total - a.total);
+
+  const orderedSwaps = sysGroups.flatMap(g => g.items);
+
+  const NASA_W = 78, SPX_W = 78, DROP_W = 56;
+  const ANCHOR_GAP = 44, INTER_GAP = 30, INTRA_GAP = 6;
+  const HEADER_Y = -22, ARCH_GAP = 50, LABEL_GAP = 30, ROTATE = -45;
+  const CAPTION = '$5 billion / mission = 3.4x cheaper';
+
+  const fmt = (v: number) => v >= 1000 ? '$' + (v / 1000).toFixed(2) + 'B' : '$' + v.toFixed(0) + 'M';
+
+  type LayoutItem =
+    | { kind: 'start' | 'end'; x0: number; bw: number; value: number }
+    | { kind: 'drop'; x0: number; bw: number; sys: string; comp: string;
+        nasa: number; spx: number; delta: number; from: number; to: number };
+
+  const layout: LayoutItem[] = [];
+  let cur = 0;
+  layout.push({ kind: 'start', x0: cur, bw: NASA_W, value: NASA_TOTAL });
+  cur += NASA_W + ANCHOR_GAP;
+
+  let running = NASA_TOTAL, prevSys: string | null = null;
+  orderedSwaps.forEach(s => {
+    if (prevSys !== null) cur += (s.sys === prevSys) ? INTRA_GAP : INTER_GAP;
+    layout.push({
+      kind: 'drop', x0: cur, bw: DROP_W,
+      sys: s.sys, comp: s.comp, nasa: s.nasa, spx: s.spx, delta: s.delta!,
+      from: running, to: running - s.delta!,
+    });
+    cur += DROP_W;
+    running -= s.delta!;
+    prevSys = s.sys;
+  });
+  cur += ANCHOR_GAP;
+  layout.push({ kind: 'end', x0: cur, bw: SPX_W, value: SPX_TOTAL });
+  cur += SPX_W;
+  const totalW = cur;
+
+  const sysSpans = sysGroups.map(grp => {
+    const drops = layout.filter((d): d is Extract<LayoutItem, { kind: 'drop' }> =>
+      d.kind === 'drop' && d.sys === grp.sys);
+    return { sys: grp.sys, x0: drops[0].x0, x1: drops[drops.length - 1].x0 + DROP_W };
+  });
+
+  const WM = { t: 120, r: 48, b: 96, l: 80 };
+  const WH = WM.t + WM.b + 464;
+  const WW = totalW + WM.l + WM.r;
+  const wih = WH - WM.t - WM.b;
+  const wsvg = d3.select('#spx-waterfall-chart').attr('viewBox', `0 0 ${WW} ${WH}`);
+  const wg = wsvg.append('g').attr('transform', `translate(${WM.l},${WM.t})`);
+
+  const wy = d3.scaleLinear().domain([0, NASA_TOTAL * 1.05]).range([wih, 0]);
+
+  wg.append('g').attr('class', 'spx-axis')
+    .call(d3.axisLeft(wy).ticks(5).tickFormat(fmt as any).tickSize(0).tickPadding(10));
+
+  sysSpans.forEach(span => {
+    wg.append('text').attr('class', 'spx-label-cat')
+      .attr('x', (span.x0 + span.x1) / 2).attr('y', HEADER_Y)
+      .attr('text-anchor', 'middle')
+      .style('text-transform', 'uppercase').style('letter-spacing', '0.08em')
+      .style('font-size', '10px').style('fill', '#9ca3af')
+      .text(span.sys);
+    wg.append('line').attr('class', 'spx-conn')
+      .attr('x1', span.x0).attr('x2', span.x1)
+      .attr('y1', HEADER_Y + 12).attr('y2', HEADER_Y + 12)
+      .style('stroke', '#e5e7eb').style('stroke-dasharray', 'none');
+  });
+
+  for (let i = 0; i < layout.length - 1; i++) {
+    const a = layout[i], b = layout[i + 1];
+    const yTop = (a.kind === 'start' || a.kind === 'end') ? wy(a.value) : wy(a.to);
+    wg.append('line').attr('class', 'spx-conn')
+      .attr('x1', a.x0 + a.bw).attr('x2', b.x0).attr('y1', yTop).attr('y2', yTop);
+  }
+
+  layout.forEach(s => {
+    let y0: number, y1: number, cls: string, label: string, hover: string;
+    if (s.kind === 'start') {
+      y0 = wy(0); y1 = wy(s.value); cls = 'spx-bar spx-bar-nasa';
+      label = 'NASA total';
+      hover = `<b>NASA Artemis II</b><br><span class="spx-muted">all 13 components</span><br>${fmt(s.value)} per mission`;
+    } else if (s.kind === 'end') {
+      y0 = wy(0); y1 = wy(s.value); cls = 'spx-bar spx-bar-spx';
+      label = 'SpaceX total';
+      hover = `<b>SpaceX-built Artemis II</b><br><span class="spx-muted">same 13 components, swapped</span><br>${fmt(s.value)} per mission<br><span class="spx-save">−${fmt(NASA_TOTAL - SPX_TOTAL)} vs NASA</span>`;
+    } else {
+      y1 = wy(s.from); y0 = wy(s.to); cls = 'spx-bar spx-bar-drop';
+      label = s.comp;
+      hover = `<b>${s.comp}</b><br><span class="spx-muted">${s.sys}</span><br>NASA: ${fmt(s.nasa)} vs. SpaceX: ${fmt(s.spx)}<br><span class="spx-save">−${fmt(s.delta)}</span>`;
+    }
+
+    wg.append('rect').attr('class', cls)
+      .attr('x', s.x0).attr('y', y1)
+      .attr('width', s.bw).attr('height', y0 - y1)
+      .on('mousemove', (e: any) => showTip(e, hover))
+      .on('mouseout', hideTip);
+
+    const topVal = s.kind === 'drop' ? s.delta : s.value;
+    wg.append('text').attr('class', 'spx-label-top')
+      .attr('x', s.x0 + s.bw / 2).attr('y', y1 - 6).attr('text-anchor', 'middle')
+      .text(fmt(topVal));
+
+    wg.append('text').attr('class', s.kind === 'drop' ? 'spx-label-step' : 'spx-label-cat')
+      .attr('transform', `translate(${s.x0 + s.bw / 2 + 4}, ${wih + LABEL_GAP}) rotate(${ROTATE})`)
+      .attr('text-anchor', 'end')
+      .text(s.kind === 'drop' ? s.comp : label);
+  });
+
+  const startX = layout[0].x0 + layout[0].bw / 2;
+  const endX = layout[layout.length - 1].x0 + layout[layout.length - 1].bw / 2;
+  const arcY = HEADER_Y - ARCH_GAP;
+  wg.append('path')
+    .attr('d', `M ${startX} ${arcY + 6} L ${startX} ${arcY} L ${endX} ${arcY} L ${endX} ${arcY + 6}`)
+    .attr('fill', 'none').attr('stroke', '#dc2626').attr('stroke-width', 1.25);
+  wg.append('text').attr('class', 'spx-total-savings')
+    .attr('x', (startX + endX) / 2).attr('y', arcY - 6).attr('text-anchor', 'middle')
+    .text(CAPTION);
+</script>
