@@ -1,0 +1,114 @@
+---
+import { rockets, renderRocketSvg, contractorKey, artemisParts, minPriceLabel, maxPriceLabel } from '../lib/rocket';
+
+
+const artemisRocket = rockets.find((r) => r.slug === 'artemis')!;
+const slide = { label: artemisRocket.label, svg: renderRocketSvg(artemisRocket) };
+
+const artemisContractors = new Set(Object.values(artemisParts).map((p) => p.contractor));
+const artemisContractorKey = contractorKey
+  .filter((item) => artemisContractors.has(item.name))
+  .map((item) => ({
+    ...item,
+    children: item.children.filter((child) => artemisContractors.has(child.name)),
+  }));
+---
+
+<style is:global>
+  .inline-diagram--parts { min-height: 620px; }
+
+  .inline-diagram--parts .panel {
+    width: 182px;
+    padding: 0 6px 86px 0;
+    transform: translateX(calc(-50% - 204px));
+  }
+
+  .inline-diagram--parts .mode-toggle {
+    position: absolute;
+    left: 50%;
+    bottom: 64px;
+    transform: translateX(112px);
+    width: auto;
+  }
+
+  .inline-diagram--parts .mode-button { padding: 6px 11px; font-size: 0.66rem; }
+  .inline-diagram--parts .key-row { font-size: 0.74rem; }
+
+  @media (max-width: 780px) {
+    .inline-diagram--parts .mode-toggle {
+      position: static;
+      transform: none;
+      justify-self: start;
+      margin-top: 4px;
+    }
+  }
+</style>
+
+<section
+  class="inline-diagram inline-diagram--parts diagram-panel"
+  data-diagram-panel
+  data-initial-mode="contractors"
+  data-inline-price-simple="true"
+  aria-label="Diagram 2: Artemis II parts diagram"
+>
+  <aside class="panel" aria-label="Artemis II contractor key">
+    <section class="price-legend" aria-labelledby="inline-parts-price-title">
+      <h2 id="inline-parts-price-title">Price Scale</h2>
+      <div class="price-gradient" aria-hidden="true"></div>
+      <div class="price-scale">
+        <span>min: {minPriceLabel}</span>
+        <span>max: {maxPriceLabel}</span>
+      </div>
+    </section>
+
+    <section class="key contractor-key" aria-labelledby="inline-contractor-title">
+      <h2 id="inline-contractor-title">Key</h2>
+      {
+        artemisContractorKey.map((item) => (
+          <div class="key-group">
+            <div class="key-row">
+              <span class="swatch" style={`background: ${item.color}`} aria-hidden="true" />
+              <span class="key-copy">
+                <span>{item.name}</span>
+              </span>
+            </div>
+            {item.children.length > 0 && (
+              <div class="key-children">
+                {item.children.map((child) => (
+                  <div class="key-row">
+                    <span class="swatch" style={`background: ${child.color}`} aria-hidden="true" />
+                    <span class="key-copy">
+                      <span>{child.name}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))
+      }
+    </section>
+  </aside>
+
+  <section class="stage" aria-label="Inline Artemis II parts diagram">
+    <div class="rocket-shell">
+      <div class="mode-toggle" role="tablist" aria-label="Diagram 2 data mode">
+        <button class="mode-button is-active" type="button" data-mode-button data-mode="contractors" aria-selected="true">Contractors</button>
+        <button class="mode-button" type="button" data-mode-button data-mode="prices" aria-selected="false">Prices</button>
+      </div>
+      <div class="rocket-window">
+        <article class="rocket-slide" aria-label={slide.label}>
+          <span class="rocket-label">{slide.label}</span>
+          <div set:html={slide.svg} />
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <div class="tooltip" data-tooltip aria-hidden="true">
+    <strong data-tooltip-part></strong>
+    <span data-tooltip-contractor></span>
+    <span data-tooltip-price></span>
+    <span data-tooltip-description></span>
+  </div>
+</section>

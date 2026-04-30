@@ -1,0 +1,122 @@
+---
+import { rockets, renderRocketSvg, minPriceLabel, maxPriceLabel } from '../lib/rocket';
+
+const artemisRocket = rockets.find((r) => r.slug === 'artemis')!;
+const slide = { label: artemisRocket.label, svg: renderRocketSvg(artemisRocket) };
+---
+
+<style is:global>
+  .inline-diagram {
+    width: 100%;
+    margin: 10px auto 10px;
+    position: relative;
+    display: block;
+    min-height: 620px;
+  }
+
+  .inline-diagram .panel {
+    position: absolute;
+    top: auto;
+    height: 620px;
+    min-height: 620px;
+    width: 112px;
+    padding: 0 2px 64px 0;
+    gap: 10px;
+    border-right: 0;
+    background: transparent;
+    justify-content: flex-end;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(calc(-50% - 186px));
+  }
+
+  .inline-diagram .stage {
+    min-height: 620px;
+    height: 620px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    width: 100%;
+  }
+
+  .inline-diagram .rocket-shell { min-height: auto; width: 100%; }
+  .inline-diagram .rocket-window { width: min(100%, 420px); }
+  .inline-diagram .rocket-label { letter-spacing: 0.12em; }
+  .inline-diagram .rocket-svg { width: min(100%, 350px); height: 600px; }
+
+  .inline-diagram .price-legend { gap: 6px; }
+  .inline-diagram .price-copy,
+  .inline-diagram .price-missing { display: none; }
+  .inline-diagram .price-legend h2 { margin-bottom: 2px; font-size: 0.72rem; }
+  .inline-diagram .price-gradient { height: 12px; }
+  .inline-diagram .price-scale { gap: 6px; font-size: 0.68rem; line-height: 1.2; }
+
+  .inline-diagram .key { gap: 8px; }
+  .inline-diagram .key h2 { margin-bottom: 2px; font-size: 0.72rem; }
+  .inline-diagram .key-row { grid-template-columns: 14px 1fr; gap: 8px; font-size: 0.78rem; }
+  .inline-diagram .key-children { gap: 6px; padding-left: 22px; }
+  .inline-diagram .swatch { width: 14px; height: 14px; }
+
+  @media (max-width: 780px) {
+    .inline-diagram {
+      min-height: 0;
+      gap: 12px;
+      position: static;
+      display: grid;
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
+
+    .inline-diagram .panel {
+      position: static;
+      transform: none;
+      width: auto;
+      padding: 0;
+      height: auto;
+      min-height: 0;
+      justify-content: flex-start;
+    }
+
+    .inline-diagram .stage { padding: 0; height: auto; min-height: auto; }
+    .inline-diagram .rocket-window { width: 100%; }
+    .inline-diagram .rocket-svg { height: auto; }
+    .inline-diagram .details { overflow: visible; }
+  }
+</style>
+
+<section
+  class="inline-diagram diagram-panel is-price-mode"
+  data-diagram-panel
+  data-initial-mode="prices"
+  data-inline-simple="true"
+  aria-label="Diagram 1: Artemis II price diagram"
+>
+  <aside class="panel" aria-label="Artemis II price key">
+    <section class="price-legend" aria-labelledby="inline-price-title">
+      <h2 id="inline-price-title">Price Scale</h2>
+      <div class="price-gradient" aria-hidden="true"></div>
+      <div class="price-scale">
+        <span>min: {minPriceLabel}</span>
+        <span>max: {maxPriceLabel}</span>
+      </div>
+    </section>
+  </aside>
+
+  <section class="stage" aria-label="Inline Artemis II price diagram">
+    <div class="rocket-shell">
+      <div class="rocket-window">
+        <article class="rocket-slide" aria-label={slide.label}>
+          <span class="rocket-label">{slide.label}</span>
+          <div set:html={slide.svg} />
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <div class="tooltip" data-tooltip aria-hidden="true">
+    <strong data-tooltip-part></strong>
+    <span data-tooltip-contractor></span>
+    <span data-tooltip-price></span>
+    <span data-tooltip-description></span>
+  </div>
+</section>

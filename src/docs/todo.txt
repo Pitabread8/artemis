@@ -1,0 +1,6 @@
+- make charts full-width
+- fix double Reid Wiseman pop-up
+- add more writing, especially for later charts and conclusion
+- transition the sankey chart
+- add the SpaceX stuff
+- update bibliography

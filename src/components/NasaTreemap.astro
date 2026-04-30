@@ -1,6 +1,6 @@
 <header>
   <h1>NASA Corporate Contract Obligations by Recipient</h1>
-  <p>Source: USAspending.gov <span id="status-sep">·</span> <span id="treemap-status">Loading CSV files…</span></p>
+  <p>Source: USAspending.gov</p>
 </header>
 
 <div id="treemap-controls">
@@ -201,8 +201,7 @@
   const slider = document.getElementById("year-slider") as HTMLInputElement;
   const yearLabel = document.getElementById("year-label")!;
   const playBtn = document.getElementById("play-btn")!;
-  const statusEl = document.getElementById("treemap-status")!;
-  const svg = d3.select("svg#treemap");
+const svg = d3.select("svg#treemap");
   const g = svg.append("g");
 
   const tickWrap = document.getElementById("tick-labels")!;
@@ -216,11 +215,9 @@
   slider.value = "0";
 
   async function loadAll() {
-    statusEl.textContent = "Loading…";
     const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     const json: Record<string, Record<string, number>> = await fetch(`${base}/nasa_contracts_aggregated.json`).then(r => r.json());
     allData = YEARS.map(y => new Map(Object.entries(json[y] ?? {})));
-    statusEl.textContent = "All files loaded.";
     render(0);
   }
 
