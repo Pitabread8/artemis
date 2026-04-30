@@ -1410,7 +1410,88 @@ const artemisSlide = rocketSlides.find((rocket) => rocket.slug === 'artemis');
         pointer-events: none;
         transform: translate3d(12px, 12px, 0);
         transition: opacity 120ms ease;
+}
+
+      /*astronaut styling*/
+    .scroll-container {
+      position: relative;
+    }
+
+    /* The graphic stays pinned to the top of the viewport */
+    .sticky-graphic {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      width: 100%;
+    }
+
+    #sankey-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Each spacer div is one "scene" of reading time */
+    .scroll-section {
+      height: 100vh;
+      /* one full screen = one astronaut */
+      /* or use 150vh for slower reveals */
+    }
+
+    .end-spacer {
+      height: 50vh;
+    }
+
+    /* Info card */
+    .info-card {
+      position: absolute;
+      bottom: 40px;
+      left: 40px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 12px;
+      padding: 20px;
+      width: 800px;
+      display: flex;
+      gap: 16px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .info-card.hidden {
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+    }
+
+    .phidden {
+      display: none;
+    }
+
+    .info-card img {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    @keyframes draw {
+      0% {
+        stroke-dashoffset: 1000;
       }
+
+      50% {
+        stroke-dashoffset: 0;
+      }
+
+      100% {
+        stroke-dashoffset: -1000;
+      }
+    }
+
+    .highlight-path {
+      stroke-dasharray: 1000;
+      stroke-dashoffset: 1000;
+      animation: draw 3s linear infinite;
+    }
 
       @media (max-width: 780px) {
         .article-intro {
@@ -1661,6 +1742,34 @@ const artemisSlide = rocketSlides.find((rocket) => rocket.slug === 'artemis');
       <div class="component-gap">
         <MissionsPieCharts />
       </div>
+      <section class="component-gap">
+        <div class="scroll-container">
+
+    <!-- This stays pinned while the page scrolls -->
+    <div class="sticky-graphic">
+      <svg id="sankey-svg">
+      </svg>
+
+      <!-- Info card overlaid on the SVG -->
+      <div id="info-card" class="info-card hidden">
+        <img id="card-photo" src="" alt="">
+        <div class="card-body">
+          <h2 id="card-name"></h2>
+          <p id="card-bio"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- One scroll spacer per astronaut -->
+    <!-- Each is tall enough to give the user reading time -->
+    <div class="scroll-section" data-index="0"></div>
+    <div class="scroll-section" data-index="1"></div>
+    <div class="scroll-section" data-index="2"></div>
+    <div class="scroll-section" data-index="3"></div>
+
+    <div class="end-spacer"></div>
+  </div>
+      </section>
       <div class="component-gap">
         <NasaTreemap />
       </div>
@@ -1910,6 +2019,322 @@ const artemisSlide = rocketSlides.find((rocket) => rocket.slug === 'artemis');
 
       document.querySelectorAll('[data-diagram-panel]').forEach((panel) => {
         initDiagramPanel(panel);
+      });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12"></script>
+    <script type="module">
+
+      const astro = await d3.csv("./artemis/astronauts/astro.csv");
+      const occupationFix = {
+        "Pilot": "pilot",
+        "Flight engineer": "flight engineer",
+        "MSP": "Mission Specialist",
+        "PSP": "Payload Specialist",
+        "Other (Space tourist)": "Other (space tourist)",
+        "spaceflight participant": "Other (space tourist)",
+        "Space tourist": "Other (space tourist)",
+        "spaceflight participant": "Other (space tourist)",
+      };
+      const nationalityFix = {
+        "U.K./U.S.": "U.S."
+      };
+
+      let astronaut = astro.map(d => ({
+        ...d,
+        occupation: occupationFix[d.occupation.trim()] ?? d.occupation.trim(),
+        nationality: nationalityFix[d.nationality.trim()] ?? d.nationality.trim()
+      }));
+
+      const excludedCountries = ["Austria", "Poland", "Cuba", "Romania", "Mongolia", "Vietnam", "UAE", "Korea", "Israel", "Kazakhstan", "Denmark",
+        "Malysia", "Sweden", "Brazil", "Republic of South Africa", "Hungry", "Saudi Arabia", "Syria", "U.S.S.R/Ukraine",
+        "Australia", "Slovakia", "Switzerland", "Afghanistan", "Czechoslovakia", "India", "Mexico"];
+      astronaut = astronaut.filter(d => {
+        return !excludedCountries.includes(d.nationality);
+      });
+
+      let artemisAstronauts = [
+        {
+          name: "Reid Wiseman", nationality: "U.S.", occupation: "commander", sex: "male", year_of_selection: "2009", military_civilian: "military", id: "rwiseman",
+          photo: "./artemis/astronauts/reidwiseman.webp",
+          bio: "Reid Wiseman is an American astronaut, engineer, and former U.S. Navy test pilot who recently commanded Artemis II, the first crewed Artemis mission and the first human mission around the Moon since Apollo 17. He led the four-person crew aboard NASA's Orion spacecraft on a nearly 10-day journey that tested systems for future lunar landings. Before Artemis II, Wiseman spent about 165 days aboard the International Space Station in 2014 and later served as NASA's Chief of the Astronaut Office. Known for both technical skill and leadership, he has become one of the key figures in NASA's return to deep-space exploration."
+        },
+        {
+          name: "Victor Glover", nationality: "U.S.", occupation: "pilot", sex: "male", year_of_selection: "2013", military_civilian: "military", id: "wglover",
+          photo: "./artemis/astronauts/victorglover.webp",
+          bio: "Victor Glover is an American astronaut, U.S. Navy captain, and former test pilot who recently served as the pilot of Artemis II, the first crewed Artemis mission around the Moon. He helped operate NASA's Orion spacecraft during the historic 2026 flight, the first human lunar mission since Apollo. Before Artemis II, Glover flew on SpaceX Crew-1 to the International Space Station, where he spent 168 days in space and completed four spacewalks. He is also recognized as the first Black astronaut to live aboard the ISS and one of the first people of color to travel into deep space."
+        },
+        {
+          name: "Christina Koch", nationality: "U.S.", occupation: "Mission Specialist", sex: "female", year_of_selection: "2013", military_civilian: "civilian",
+          id: "ckoch", photo: "./artemis/astronauts/christinakoch.webp",
+          bio: "Christina Koch is an American astronaut and engineer who recently served as a mission specialist on Artemis II, the first crewed Artemis mission to fly around the Moon. She became one of the key members of NASA's return to deep-space exploration aboard the Orion spacecraft. Before Artemis II, Koch was already widely known for setting the record for the longest single spaceflight by a woman, spending 328 days aboard the International Space Station from 2019 to 2020. She also took part in the first all-woman spacewalk with Jessica Meir. Her Artemis II role further cemented her place as one of NASA's most accomplished modern astronauts."
+        },
+        {
+          name: "Jeremy Hansen", nationality: "Canada", occupation: "Mission Specialist", sex: "male", year_of_selection: "2009", military_civilian: "military",
+          id: "jhansen", photo: "./artemis/astronauts/jeremyhansen.webp",
+          bio: "Jeremy Hansen is a Canadian astronaut and Royal Canadian Air Force colonel who recently flew on Artemis II, the first crewed mission of NASA's Artemis program. He made history as the first Canadian and first non-American to travel into the lunar environment on a mission around the Moon. Hansen served as a mission specialist alongside Reid Wiseman, Victor Glover, and Christina Koch. The roughly 10-day mission launched on April 1, 2026, flew around the Moon, and safely splashed down on April 10. Before Artemis II, Hansen had never flown in space, making this a major milestone in both his career and Canadian space history. He represents Canadian Space Agency and is seen as a key figure in Canada's growing role in future lunar exploration."
+        },
+      ];
+
+      const width = 960;
+      const height = 700;
+      const margin = {
+        top: 20,
+        right: 20,
+        bottom: 20,
+        left: 20
+      };
+      const nodeWidth = 18;
+      const nodePadding = 8;
+      const stages = ["military_civilian", "occupation", "sex", "nationality"];
+      const color = d3.scaleOrdinal(d3.schemeTableau10);
+
+      const byNumber = new Map();
+      astronaut.forEach(d => {
+        const key = d.number ?? d.id ?? d.name;
+        if (!byNumber.has(key)) byNumber.set(key, d);
+      });
+      const unique = Array.from(byNumber.values());
+
+      const linkCounts = new Map(); // key: `${stageIndex}|${from}|${to}` -> count
+      unique.forEach(d => {
+        const path = stages.map(s => (d[s] == null ? "Unknown" : String(d[s]).trim() || "Unknown"));
+        for (let i = 0; i < path.length - 1; ++i) {
+          const key = `${i}|${path[i]}|${path[i + 1]}`;
+          linkCounts.set(key, (linkCounts.get(key) || 0) + 1);
+        }
+      });
+
+      const nodeIndex = new Map();
+      const nodes = [];
+      const links = [];
+
+      function ensureNode(stageIndex, name) {
+        const key = `${stageIndex}|${name}`;
+        if (!nodeIndex.has(key)) {
+          const idx = nodes.length;
+          nodeIndex.set(key, idx);
+          nodes.push({
+            name,
+            stage: stageIndex
+          });
+        }
+        return nodeIndex.get(key);
+      }
+
+      // Create nodes for all values that appear in links
+      for (const key of linkCounts.keys()) {
+        const [iStr, from, to] = key.split("|");
+        const i = +iStr;
+        ensureNode(i, from);
+        ensureNode(i + 1, to);
+      }
+
+      // Create links with values
+      for (const [key, value] of linkCounts.entries()) {
+        const [iStr, from, to] = key.split("|");
+        const i = +iStr;
+        links.push({
+          source: ensureNode(i, from),
+          target: ensureNode(i + 1, to),
+          value
+        });
+      }
+
+      const sankeyGen = d3.sankey()
+        .nodeWidth(nodeWidth)
+        .nodePadding(nodePadding)
+        .extent([
+          [margin.left, margin.top],
+          [width - margin.right, height - margin.bottom]
+        ])
+        .nodeId((d, i) => i); // nodes are referenced by index
+
+      const graph = sankeyGen({
+        nodes: nodes.map(d => Object.assign({}, d)),
+        links: links.map(d => Object.assign({}, d))
+      });
+
+      const svg = d3.create("svg")
+        .attr("viewBox", [0, 0, width, height])
+        .style("font", "12px sans-serif");
+
+      // Define defs for arrowheads
+      svg.append("defs").selectAll("marker")
+        .data(["overlay"])
+        .join("marker")
+        .attr("id", d => d)
+        .attr("viewBox", "0 -5 10 10")
+        .attr("refX", 10)
+        .attr("refY", 0)
+        .attr("markerWidth", 6)
+        .attr("markerHeight", 6)
+        .attr("orient", "auto")
+        .append("path")
+        .attr("d", "M0,-5L10,0L0,5")
+        .attr("fill", "#444");
+
+      // Draw links (base flows)
+      const link = svg.append("g")
+        .attr("fill", "none")
+        .attr("stroke-opacity", 0.5)
+        .selectAll("path")
+        .data(graph.links)
+        .join("path")
+        .attr("d", d3.sankeyLinkHorizontal())
+        .attr("stroke", d => {
+          // color by source stage value
+          const src = nodes[d.source.index];
+          return color(src.name);
+        })
+        .attr("stroke-width", d => Math.max(1, d.width))
+        .attr("stroke-linecap", "none")
+        .attr("opacity", 0.6);
+
+      // Link tooltip (counts)
+      link.append("title")
+        .text(d => `${nodes[d.source.index].name} → ${nodes[d.target.index].name}\n${d.value} astronaut(s)`);
+
+      const node = svg.append("g")
+        .selectAll("g")
+        .data(graph.nodes)
+        .join("g")
+        .attr("transform", d => `translate(${d.x0},${d.y0})`);
+
+      node.append("rect")
+        .attr("height", d => Math.max(1, d.y1 - d.y0))
+        .attr("width", d => d.x1 - d.x0)
+        .attr("fill", d => color(d.name))
+        .attr("stroke", "#000")
+        .attr("stroke-width", 0.2)
+        .append("title")
+        .text(d => `${d.name}\n${Math.round(d.value)} astronaut(s)`);
+
+      // Node labels
+      node.append("text")
+        .attr("x", d => d.x0 < width / 2 ? d.x1 - d.x0 + 6 : -6)
+        .attr("y", d => (d.y1 - d.y0) / 2)
+        .attr("dy", "0.35em")
+        .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
+        .text(d => `${d.name} (${Math.round(d.value)})`)
+        .style("font-size", 11)
+        .style("pointer-events", "none");
+
+      // ARTEMIS OVERLAY
+      function findNodeIndex(stageIndex, value) {
+        const key = `${stageIndex}|${value}`;
+        if (nodeIndex.has(key)) return nodeIndex.get(key);
+        const altKey = `${stageIndex}|${String(value).trim() || "Unknown"}`;
+        return nodeIndex.get(altKey);
+      }
+
+      const overlayG = svg.append("g").attr("class", "artemis-overlay");
+      const dotRadius = 4;
+
+      function nodeCenter(idx) {
+        const n = graph.nodes[idx];
+        return [(n.x0 + n.x1) / 2, (n.y0 + n.y1) / 2];
+      }
+
+      const tooltip = d3.select(document.body).append("div")
+        .attr("class", "sankey-tooltip")
+        .style("position", "absolute")
+        .style("pointer-events", "none")
+        .style("padding", "6px 8px")
+        .style("background", "rgba(0,0,0,0.75)")
+        .style("color", "#fff")
+        .style("font-size", "12px")
+        .style("border-radius", "4px")
+        .style("display", "none");
+
+      // For each artemis astronaut, create a thin path that follows the sankey link centers
+      artemisAstronauts.forEach((a, i) => {
+        const seq = stages.map((s, idx) => {
+          const val = a[s] ?? a[s.toLowerCase()] ?? "Unknown";
+          return findNodeIndex(idx, val);
+        });
+
+        if (seq.some(idx => typeof idx === "undefined")) return;
+
+        const points = seq.map(idx => nodeCenter(idx));
+        const line = d3.line().curve(d3.curveMonotoneX).x(d => d[0]).y(d => d[1]);
+        const pathData = line(points);
+
+        const p = overlayG.append("path")
+          .attr("d", pathData)
+          .attr("fill", "none")
+          .attr("stroke", "#FFD700")
+          .attr("stroke-width", 5)
+          .attr("opacity", 0.7)
+          .attr("class", "artemis-path highlight-path")
+          .attr("id", a.id)
+          .style("pointer-events", "stroke")
+          .on("mouseover", (event) => {
+            tooltip.style("display", "block").text(a.name || "Artemis astronaut");
+          })
+          .on("mousemove", (event) => {
+            tooltip.style("left", (event.pageX + 10) + "px").style("top", (event.pageY + 10) + "px");
+          })
+          .on("mouseout", () => tooltip.style("display", "none"));
+
+        // overlayG.selectAll(null)
+        //   .data(points)
+        //   .join("circle")
+        //   .attr("cx", d => d[0])
+        //   .attr("cy", d => d[1])
+        //   .attr("r", 2)
+        //   .attr("fill", "#222")
+        //   .attr("opacity", 0.9)
+        //   .attr("pointer-events", "none");
+      });
+
+      document.getElementById("sankey-svg").append(svg.node());
+
+      const card = document.getElementById("info-card");
+      const cardName = document.getElementById("card-name");
+      const cardBio = document.getElementById("card-bio");
+      const cardPhoto = document.getElementById("card-photo");
+      const allPaths = document.querySelectorAll(".artemis-path");
+      allPaths.forEach(p => p.classList.add("phidden"));
+
+      function activate(index) {
+        // 1. Dim all paths, highlight the active one
+        allPaths.forEach(p => p.classList.add("phidden"));
+        const activePath = document.getElementById(artemisAstronauts[index].id);
+        if (activePath) activePath.classList.remove("phidden");
+
+        // 2. Fade the card out, swap content, fade back in
+        card.classList.add("hidden");
+        setTimeout(() => {
+          const a = artemisAstronauts[index];
+          cardName.textContent = a.name;
+          cardBio.textContent = a.bio;
+          cardPhoto.src = a.photo;
+          cardPhoto.alt = a.name;
+          card.classList.remove("hidden");
+        }, 350); // matches CSS transition duration
+      }
+
+      function deactivate() {
+        allPaths.forEach(p => p.classList.remove("active"));
+        card.classList.add("hidden");
+      }
+
+      // Watch each scroll-section trigger
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const index = parseInt(entry.target.dataset.index, 10);
+            activate(index);
+          }
+        });
+      }, {
+        threshold: 0.5   // fires when 50% of the trigger div is visible
+      });
+
+      document.querySelectorAll(".scroll-section").forEach(el => {
+        observer.observe(el);
       });
     </script>
   </body>
