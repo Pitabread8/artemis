@@ -132,6 +132,7 @@
     width: 100%;
     height: calc(100vh - 178px);
     display: block;
+    font-family: var(--font);
   }
 
   :global(.cell rect) {
@@ -213,13 +214,6 @@ const svg = d3.select("svg#treemap");
 
   slider.max = String(YEARS.length - 1);
   slider.value = "0";
-
-  async function loadAll() {
-    const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-    const json: Record<string, Record<string, number>> = await fetch(`${base}/nasa_contracts_aggregated.json`).then(r => r.json());
-    allData = YEARS.map(y => new Map(Object.entries(json[y] ?? {})));
-    render(0);
-  }
 
   function wrapText(el: d3.Selection<SVGTextElement, unknown, null, undefined>, name: string, w: number, h: number, showAmount: boolean) {
     const fontSize = 14;
@@ -366,7 +360,7 @@ const svg = d3.select("svg#treemap");
     render(yearIdx, true);
     if (yearIdx < YEARS.length - 1) {
       yearIdx++;
-      playTimer = setTimeout(step, 1400);
+      playTimer = setTimeout(step, 900);
     } else {
       stopPlay();
     }
@@ -375,6 +369,13 @@ const svg = d3.select("svg#treemap");
   window.addEventListener("resize", () => {
     if (allData[yearIdx]) render(yearIdx, false);
   });
+
+  async function loadAll() {
+    const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+    const json: Record<string, Record<string, number>> = await fetch(`${base}/nasa_contracts_aggregated.json`).then(r => r.json());
+    allData = YEARS.map(y => new Map(Object.entries(json[y] ?? {})));
+    render(0);
+  }
 
   loadAll();
 </script>

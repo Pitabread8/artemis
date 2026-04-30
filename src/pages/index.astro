@@ -1,13 +1,6 @@
 ---
-import { rockets, renderRocketSvg, contractorKey, priceBibliography, minPriceLabel, maxPriceLabel } from '../lib/rocket';
-import RocketPlayground from '../components/RocketPlayground.astro';
+import { priceBibliography } from '../lib/rocket';
 import ArticleText from '../components/ArticleText.mdx';
-
-const rocketSlides = rockets.map((rocket) => ({
-  ...rocket,
-  svg: renderRocketSvg(rocket),
-}));
-
 ---
 
 <!doctype html>
@@ -21,13 +14,12 @@ const rocketSlides = rockets.map((rocket) => ({
     <style is:global>
       :root {
         color-scheme: light;
-        font-family:
-          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-          sans-serif;
+        --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family: var(--font);
         --ink: #141414;
         --muted: #62666d;
         --line: #d9d9d9;
-        --paper: #f7f7f4;
+        --paper: #fbfbf8;
         --panel: #ffffff;
       }
 
@@ -62,7 +54,7 @@ const rocketSlides = rockets.map((rocket) => ({
 
       .article-intro {
         padding: 34px 28px 30px;
-        background: #fbfbf8;
+        background: var(--paper);
       }
 
       .article-intro__inner {
@@ -114,7 +106,9 @@ const rocketSlides = rockets.map((rocket) => ({
       .page {
         min-height: 100vh;
         display: grid;
-        grid-template-columns: minmax(250px, 330px) 1fr;
+        grid-template-columns: minmax(280px, 380px) 1fr;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
       }
 
       .panel {
@@ -130,6 +124,10 @@ const rocketSlides = rockets.map((rocket) => ({
         gap: 28px;
       }
 
+      .panel h1 {
+        white-space: nowrap;
+      }
+
       h1 {
         margin: 0;
         font-size: clamp(2rem, 5vw, 4.25rem);
@@ -140,6 +138,7 @@ const rocketSlides = rockets.map((rocket) => ({
 
       .deck {
         margin: 0;
+        margin-top: 10px;
         color: var(--muted);
         font-size: 0.95rem;
         line-height: 1.45;
@@ -507,8 +506,7 @@ const rocketSlides = rockets.map((rocket) => ({
 
       .bibliography {
         padding: clamp(24px, 4vw, 42px);
-        border-top: 1px solid var(--line);
-        background: #f5f5f1;
+        background: var(--paper);
       }
 
       .bibliography h2 {
@@ -580,6 +578,12 @@ const rocketSlides = rockets.map((rocket) => ({
 
       .component-gap {
         padding: 60px 0;
+      }
+
+      .full-bleed {
+        width: 100vw;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
       }
 
       .viz-tooltip {
@@ -695,19 +699,12 @@ const rocketSlides = rockets.map((rocket) => ({
         <div class="article-intro__inner">
           <p class="article-kicker">Bryan Ammons, Kevin Durand, Mannat Jain, and Sita Vemuri</p>
           <h1 class="article-title" id="article-title">Next!: Artemis II and the Modern Space Age</h1>
-          <p class=”article-subtitle”>A working article about what the Artemis program reveals about NASA’s dependence on private industry, and how that relationship has changed since Apollo.</p>
+          <!-- <p class=”article-subtitle”>A working article about what the Artemis program reveals about NASA’s dependence on private industry, and how that relationship has changed since Apollo.</p> -->
           <div class=”article-content”>
             <ArticleText />
           </div>
         </div>
       </section>
-
-      <RocketPlayground
-        rocketSlides={rocketSlides}
-        contractorKey={contractorKey}
-        minPriceLabel={minPriceLabel}
-        maxPriceLabel={maxPriceLabel}
-      />
 
       <section class="bibliography" aria-labelledby="bibliography-title">
         <h2 id="bibliography-title">Data Bibliography</h2>

@@ -3,6 +3,7 @@ import InlinePartsDiagram from './InlinePartsDiagram.astro';
 import MissionsPieCharts from './MissionsPieCharts.astro';
 import AstronautSankey from './AstronautSankey.astro';
 import NasaTreemap from './NasaTreemap.astro';
+import RocketPlayground from './RocketPlayground.astro';
 
 Artemis II, which safely returned last weekend, marked a historic return to manned lunar spaceflight, but it is also a historic launch because of the scale of industrial coordination required to make it possible.
 
@@ -16,16 +17,28 @@ As said, Artemis is an unprecedented mission in terms of its scope and scale. Of
 
 Taking both of these charts together now, we can see for example that the most expensive section of the Artemis II SLS was the Core Stage, and that the Core Stage was designed and fabricated primarily by Boeing. Boeing has been at the heart of NASA's spaceflight enterprise, having a hand in basically all of its missions since the initial 20th century Space Race.
 
+Even a quick glance at past lunar missions reveals a similar breakdown; Boeing and its subsidiaries are again the most prominent.
+
 <div class="component-gap">
   <MissionsPieCharts />
 </div>
 
 The companies that worked on the rockets above are key players in NASA overall, as they're awarded the agency's largest contracts. Take a look at how their involvement as progressed over the past 18 years. 
 
-<div class="component-gap">
+<div class="component-gap full-bleed">
   <NasaTreemap />
 </div>
 
 As the tree map timeline progresses, one company (highlighted in a distinct red) slowly makes its way up the ranks. This company is Space Exploration Technologies Corp., better known as SpaceX. While SpaceX did not work on the Artemis II mission specifically, it is impossible to discuss the modern space age without it.
 
-<AstronautSankey />
+[SpaceX charts]
+
+The space industry is all about corporations, contracts, and billions. But in the end, the progress is a testament to human achievement. The Artemis II crew, just a small subset of all the people who made the mission possible, come from different backgrounds themselves.
+
+<div class="component-gap full-bleed">
+  <AstronautSankey />
+</div>
+
+Play around with different rockets! Learn more about each part of several rockets: who made it and how much it cost.
+
+<RocketPlayground />

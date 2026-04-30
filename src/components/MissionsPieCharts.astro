@@ -16,8 +16,6 @@
   h1 {
     font-size: 18px;
     font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
     color: #62666d;
     margin-bottom: 48px;
     text-align: center;
@@ -90,6 +88,8 @@
 
 <script>
   import Chart from 'chart.js/auto';
+
+  Chart.defaults.font.family = getComputedStyle(document.documentElement).getPropertyValue('--font').trim();
 
   const COLORS: Record<string, string> = {
     "Northrop Grumman":        "#f5df2e",
@@ -189,10 +189,14 @@
   ];
 
   const grid = document.getElementById("pie-grid")!;
+  const canvases: HTMLCanvasElement[] = [];
 
   MISSIONS.forEach(mission => {
     const card = document.createElement("div");
     card.className = "card";
+    card.style.opacity = "0";
+    card.style.transform = "translateY(18px)";
+    card.style.transition = "opacity 0.45s ease, transform 0.45s ease";
 
     const title = document.createElement("div");
     title.className = "card-title";
@@ -202,13 +206,15 @@
     wrap.className = "chart-wrap";
 
     const canvas = document.createElement("canvas");
+    canvases.push(canvas);
     wrap.appendChild(canvas);
     card.appendChild(title);
     card.appendChild(wrap);
     grid.appendChild(card);
+  });
 
+  function createChart(canvas: HTMLCanvasElement, mission: Mission) {
     const chartData = mergeOthers(mission.data);
-
     new Chart(canvas, {
       type: "pie",
       data: {
@@ -234,7 +240,24 @@
         },
       },
     });
-  });
+  }
+
+  const cards = Array.from(grid.querySelectorAll<HTMLElement>('.card'));
+  let revealed = false;
+  const pieObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && !revealed) {
+      revealed = true;
+      pieObserver.disconnect();
+      MISSIONS.forEach((mission, i) => {
+        setTimeout(() => {
+          createChart(canvases[i], mission);
+          cards[i].style.opacity = "1";
+          cards[i].style.transform = "translateY(0)";
+        }, i * 380);
+      });
+    }
+  }, { threshold: 0.2 });
+  pieObserver.observe(grid);
 
   const usedContractors = new Set(
     MISSIONS.flatMap(m => m.data.map(d => d.contractor))

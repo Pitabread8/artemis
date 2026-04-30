@@ -1,26 +1,13 @@
 ---
-interface ContractorKeyItem {
-  name: string;
-  color: string;
-  children: { name: string; color: string }[];
-}
+import { rockets, renderRocketSvg, contractorKey, minPriceLabel, maxPriceLabel } from '../lib/rocket';
 
-interface RocketSlide {
-  label: string;
-  svg: string;
-}
-
-interface Props {
-  rocketSlides: RocketSlide[];
-  contractorKey: ContractorKeyItem[];
-  minPriceLabel: string;
-  maxPriceLabel: string;
-}
-
-const { rocketSlides, contractorKey, minPriceLabel, maxPriceLabel } = Astro.props;
+const rocketSlides = rockets.map((rocket) => ({
+  ...rocket,
+  svg: renderRocketSvg(rocket),
+}));
 ---
 
-<section class="page diagram-panel" data-diagram-panel data-initial-mode="contractors" data-slide-count={rocketSlides.length}>
+<section class="page diagram-panel full-bleed" data-diagram-panel data-initial-mode="contractors" data-slide-count={rocketSlides.length}>
   <aside class="panel" aria-label="Artemis II contractor key">
     <div>
       <h1>Artemis II</h1>

@@ -198,7 +198,8 @@
 
   const svg = d3.create("svg")
     .attr("viewBox", `0 0 ${width} ${height}`)
-    .style("font", "12px sans-serif");
+    .style("font-family", getComputedStyle(document.documentElement).getPropertyValue('--font').trim())
+    .style("font-size", "12px");
 
   svg.append("defs").selectAll("marker")
     .data(["overlay"])
@@ -288,7 +289,10 @@
   const allPaths = document.querySelectorAll<SVGPathElement>(".artemis-path");
   allPaths.forEach(p => p.classList.add("phidden"));
 
+  let activeIndex = -1;
   function activate(index: number) {
+    if (index === activeIndex) return;
+    activeIndex = index;
     allPaths.forEach(p => p.classList.add("phidden"));
     document.getElementById(artemisAstronauts[index].id)?.classList.remove("phidden");
     card.classList.add("hidden");
@@ -301,6 +305,8 @@
       card.classList.remove("hidden");
     }, 350);
   }
+
+  activate(0);
 
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
