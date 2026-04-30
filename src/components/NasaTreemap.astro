@@ -152,26 +152,27 @@
 <script>
   import * as d3 from 'd3';
 
+  const BASE = "https://github.com/Pitabread8/artemis/releases/download/data-v1";
   const FILES = [
-    "/nasa_contracts/FY2008_080_Contracts_Full_20260406_1.csv",
-    "/nasa_contracts/FY2009_080_Contracts_Full_20260406_1.csv",
-    "/nasa_contracts/FY2010_080_Contracts_Full_20260406_1.csv",
-    "/nasa_contracts/FY2011_080_Contracts_Full_20260406_1.csv",
-    "/nasa_contracts/FY2012_080_Contracts_Full_20260406_1.csv",
-    "/nasa_contracts/FY2013_080_Contracts_Full_20260406_1.csv",
-    "/nasa_contracts/FY2014_080_Contracts_Full_20260407_1.csv",
-    "/nasa_contracts/FY2015_080_Contracts_Full_20260407_1.csv",
-    "/nasa_contracts/FY2016_080_Contracts_Full_20260407_1.csv",
-    "/nasa_contracts/FY2017_080_Contracts_Full_20260407_1.csv",
-    "/nasa_contracts/FY2018_080_Contracts_Full_20260407_1.csv",
-    "/nasa_contracts/FY2019_080_Contracts_Full_20260407_1.csv",
-    "/nasa_contracts/FY2020_080_Contracts_Full_20260407_1.csv",
-    "/nasa_contracts/FY2021_080_Contracts_Full_20260407_1.csv",
-    "/nasa_contracts/FY2022_080_Contracts_Full_20260407_1.csv",
-    "/nasa_contracts/FY2023_080_Contracts_Full_20260408_1.csv",
-    "/nasa_contracts/FY2024_080_Contracts_Full_20260408_1.csv",
-    "/nasa_contracts/FY2025_080_Contracts_Full_20260408_1.csv",
-    "/nasa_contracts/FY2026_080_Contracts_Full_20260408_1.csv",
+    `${BASE}/FY2008_080_Contracts_Full_20260406_1.csv`,
+    `${BASE}/FY2009_080_Contracts_Full_20260406_1.csv`,
+    `${BASE}/FY2010_080_Contracts_Full_20260406_1.csv`,
+    `${BASE}/FY2011_080_Contracts_Full_20260406_1.csv`,
+    `${BASE}/FY2012_080_Contracts_Full_20260406_1.csv`,
+    `${BASE}/FY2013_080_Contracts_Full_20260406_1.csv`,
+    `${BASE}/FY2014_080_Contracts_Full_20260407_1.csv`,
+    `${BASE}/FY2015_080_Contracts_Full_20260407_1.csv`,
+    `${BASE}/FY2016_080_Contracts_Full_20260407_1.csv`,
+    `${BASE}/FY2017_080_Contracts_Full_20260407_1.csv`,
+    `${BASE}/FY2018_080_Contracts_Full_20260407_1.csv`,
+    `${BASE}/FY2019_080_Contracts_Full_20260407_1.csv`,
+    `${BASE}/FY2020_080_Contracts_Full_20260407_1.csv`,
+    `${BASE}/FY2021_080_Contracts_Full_20260407_1.csv`,
+    `${BASE}/FY2022_080_Contracts_Full_20260407_1.csv`,
+    `${BASE}/FY2023_080_Contracts_Full_20260408_1.csv`,
+    `${BASE}/FY2024_080_Contracts_Full_20260408_1.csv`,
+    `${BASE}/FY2025_080_Contracts_Full_20260408_1.csv`,
+    `${BASE}/FY2026_080_Contracts_Full_20260408_1.csv`,
   ];
 
   const YEARS = FILES.map(f => f.match(/FY(\d{4})/)![1]);
