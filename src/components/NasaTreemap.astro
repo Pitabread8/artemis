@@ -217,7 +217,8 @@
 
   async function loadAll() {
     statusEl.textContent = "Loading…";
-    const json: Record<string, Record<string, number>> = await fetch(`${import.meta.env.BASE_URL}nasa_contracts_aggregated.json`).then(r => r.json());
+    const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+    const json: Record<string, Record<string, number>> = await fetch(`${base}/nasa_contracts_aggregated.json`).then(r => r.json());
     allData = YEARS.map(y => new Map(Object.entries(json[y] ?? {})));
     statusEl.textContent = "All files loaded.";
     render(0);
