@@ -1,0 +1,260 @@
+<div class="pie-page">
+  <h1>NASA Lunar Mission Contractors — Relative Spend by Company</h1>
+  <div class="grid" id="pie-grid"></div>
+  <div class="legend" id="pie-legend"></div>
+</div>
+
+<style>
+  .pie-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: min(1200px, 100%);
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #62666d;
+    margin-bottom: 48px;
+    text-align: center;
+    max-width: none;
+    line-height: 1.3;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0 24px;
+    width: 100%;
+    justify-items: center;
+  }
+
+  :global(.card) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  :global(.card-title) {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #62666d;
+  }
+
+  :global(.chart-wrap) {
+    width: 160px;
+    height: 160px;
+  }
+
+  .legend {
+    margin-top: 56px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(6, auto);
+    justify-content: center;
+    gap: 12px 32px;
+  }
+
+  :global(.legend-item) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #141414;
+    white-space: nowrap;
+  }
+
+  :global(.pie-swatch) {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  :global(.legend-section) {
+    width: 100%;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #62666d;
+    margin-top: 8px;
+  }
+</style>
+
+<script>
+  import Chart from 'chart.js/auto';
+
+  const COLORS: Record<string, string> = {
+    "Northrop Grumman":        "#f5df2e",
+    "Grumman Aircraft":        "#faf0a0",
+    "TRW Inc.":                "#f2e07a",
+    "Boeing":                  "#02a9df",
+    "North American Aviation": "#8ad5f2",
+    "Douglas Aircraft Co.":    "#63c5ea",
+    "Lockheed Martin":         "#16a35f",
+    "Aerojet Rocketdyne":      "#e76f33",
+    "Rocketdyne / NAA":        "#f2a56e",
+    "IBM":                     "#6a4cff",
+    "SpaceX":                  "#f00",
+    "Other":                   "#5f6063",
+  };
+
+  const LEGEND_CONTRACTORS = [
+    "Northrop Grumman", "Grumman Aircraft", "TRW Inc.",
+    "Boeing", "North American Aviation", "Douglas Aircraft Co.",
+    "Lockheed Martin", "Aerojet Rocketdyne", "Rocketdyne / NAA",
+    "IBM", "SpaceX", "Other",
+  ];
+
+  const NAMED_CONTRACTORS = new Set(Object.keys(COLORS).filter(k => k !== "Other"));
+
+  interface MissionEntry { contractor: string; pct: number; }
+  interface Mission { label: string; data: MissionEntry[]; }
+
+  function mergeOthers(data: MissionEntry[]): MissionEntry[] {
+    const named = data.filter(d => NAMED_CONTRACTORS.has(d.contractor));
+    const otherPct = data
+      .filter(d => !NAMED_CONTRACTORS.has(d.contractor))
+      .reduce((sum, d) => sum + d.pct, 0);
+    return otherPct > 0
+      ? [...named, { contractor: "Other", pct: Math.round(otherPct * 100) / 100 }]
+      : named;
+  }
+
+  const MISSIONS: Mission[] = [
+    {
+      label: "Apollo 11–17",
+      data: [
+        { contractor: "North American Aviation", pct: 48.82 },
+        { contractor: "Grumman Aircraft",         pct: 15.07 },
+        { contractor: "Boeing",                   pct: 14.23 },
+        { contractor: "Rocketdyne / NAA",         pct: 10.85 },
+        { contractor: "Douglas Aircraft Co.",     pct:  7.84 },
+        { contractor: "IBM",                      pct:  0.90 },
+        { contractor: "MIT Instrumentation Lab",  pct:  0.72 },
+        { contractor: "TRW Inc.",                 pct:  0.72 },
+        { contractor: "Other",                    pct:  0.84 },
+      ],
+    },
+    {
+      label: "Apollo 15–17 (LRV)",
+      data: [
+        { contractor: "Boeing",                 pct: 50.00 },
+        { contractor: "General Motors Defense", pct: 50.00 },
+      ],
+    },
+    {
+      label: "Apollo — Saturn IB",
+      data: [
+        { contractor: "Douglas Aircraft Co.", pct: 70.27 },
+        { contractor: "Chrysler Corporation", pct: 21.62 },
+        { contractor: "IBM",                  pct:  8.11 },
+      ],
+    },
+    {
+      label: "Artemis I",
+      data: [
+        { contractor: "Boeing",                              pct: 32.07 },
+        { contractor: "Lockheed Martin",                     pct: 25.55 },
+        { contractor: "Aerojet Rocketdyne",                  pct: 16.03 },
+        { contractor: "Amentum",                             pct: 10.57 },
+        { contractor: "Northrop Grumman",                    pct:  8.31 },
+        { contractor: "Bechtel",                             pct:  4.62 },
+        { contractor: "Air Products",                        pct:  0.94 },
+        { contractor: "Ares Technical Services Corporation", pct:  0.61 },
+        { contractor: "Other",                               pct:  1.33 },
+      ],
+    },
+    {
+      label: "Artemis III (planned)",
+      data: [
+        { contractor: "SpaceX",             pct: 31.92 },
+        { contractor: "Boeing",             pct: 15.52 },
+        { contractor: "Blue Origin",        pct: 13.74 },
+        { contractor: "Lockheed Martin",    pct: 13.11 },
+        { contractor: "Aerojet Rocketdyne", pct:  7.76 },
+        { contractor: "Amentum",            pct:  5.12 },
+        { contractor: "Northrop Grumman",   pct:  4.70 },
+        { contractor: "Dynetics (Leidos)",  pct:  4.35 },
+        { contractor: "Other",              pct:  3.78 },
+      ],
+    },
+  ];
+
+  const grid = document.getElementById("pie-grid")!;
+
+  MISSIONS.forEach(mission => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const title = document.createElement("div");
+    title.className = "card-title";
+    title.textContent = mission.label;
+
+    const wrap = document.createElement("div");
+    wrap.className = "chart-wrap";
+
+    const canvas = document.createElement("canvas");
+    wrap.appendChild(canvas);
+    card.appendChild(title);
+    card.appendChild(wrap);
+    grid.appendChild(card);
+
+    const chartData = mergeOthers(mission.data);
+
+    new Chart(canvas, {
+      type: "pie",
+      data: {
+        labels: chartData.map(d => d.contractor),
+        datasets: [{
+          data:            chartData.map(d => d.pct),
+          backgroundColor: chartData.map(d => COLORS[d.contractor] || "#5f6063"),
+          borderWidth: 1.5,
+          borderColor: "#f7f7f4",
+          hoverOffset: 6,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => ` ${ctx.label}  ${ctx.parsed.toFixed(1)}%`,
+            },
+          },
+        },
+      },
+    });
+  });
+
+  const usedContractors = new Set(
+    MISSIONS.flatMap(m => m.data.map(d => d.contractor))
+  );
+
+  const legendEl = document.getElementById("pie-legend")!;
+
+  LEGEND_CONTRACTORS.filter(c => usedContractors.has(c)).forEach(name => {
+    const item = document.createElement("div");
+    item.className = "legend-item";
+
+    const swatch = document.createElement("div");
+    swatch.className = "pie-swatch";
+    swatch.style.background = COLORS[name] || "#37474F";
+
+    const label = document.createElement("span");
+    label.textContent = name;
+
+    item.appendChild(swatch);
+    item.appendChild(label);
+    legendEl.appendChild(item);
+  });
+</script>

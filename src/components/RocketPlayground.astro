@@ -1,0 +1,150 @@
+---
+interface ContractorKeyItem {
+  name: string;
+  color: string;
+  children: { name: string; color: string }[];
+}
+
+interface RocketSlide {
+  label: string;
+  svg: string;
+}
+
+interface Props {
+  rocketSlides: RocketSlide[];
+  contractorKey: ContractorKeyItem[];
+  minPriceLabel: string;
+  maxPriceLabel: string;
+}
+
+const { rocketSlides, contractorKey, minPriceLabel, maxPriceLabel } = Astro.props;
+---
+
+<section class="page diagram-panel" data-diagram-panel data-initial-mode="contractors" data-slide-count={rocketSlides.length}>
+  <aside class="panel" aria-label="Artemis II contractor key">
+    <div>
+      <h1>Artemis II</h1>
+      <p class="deck">SLS and Orion contractors mapped to the rocket structure.</p>
+    </div>
+
+    <div class="mode-toggle" role="tablist" aria-label="Rocket data mode">
+      <button class="mode-button is-active" type="button" data-mode-button data-mode="contractors" aria-selected="true">Contractors</button>
+      <button class="mode-button" type="button" data-mode-button data-mode="prices" aria-selected="false">Prices</button>
+    </div>
+
+    <section class="key contractor-key" aria-labelledby="key-title">
+      <h2 id="key-title">Key</h2>
+      {
+        contractorKey.map((item) => (
+          <div class="key-group">
+            <div class="key-row">
+              <span class="swatch" style={`background: ${item.color}`} aria-hidden="true" />
+              <span class="key-copy">
+                <span>{item.name}</span>
+              </span>
+            </div>
+
+            {item.children.length > 0 && (
+              <div class="key-children">
+                {item.children.map((child) => (
+                  <div class="key-row">
+                    <span class="swatch" style={`background: ${child.color}`} aria-hidden="true" />
+                    <span class="key-copy">
+                      <span>{child.name}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))
+      }
+    </section>
+
+    <section class="price-legend" aria-labelledby="price-title">
+      <h2 id="price-title">Price Scale</h2>
+      <div class="price-gradient" aria-hidden="true"></div>
+      <div class="price-scale">
+        <span>min: {minPriceLabel}</span>
+        <span>max: {maxPriceLabel}</span>
+      </div>
+      <p class="price-copy">Price mode uses a power scale to separate high-cost Artemis hardware more aggressively while preserving some contrast among lower-cost parts. Colors map from the minimum to maximum sourced Artemis price values, with subsystem proxies used where NASA only publishes grouped hardware or contract costs.</p>
+      <div class="price-missing">
+        <span class="swatch" style="background: #d9ddd9" aria-hidden="true"></span>
+        <span>No isolated NASA price located in the reviewed source set.</span>
+      </div>
+    </section>
+
+    <section class="details" aria-live="polite">
+      <h2>Part</h2>
+      <p class="details-name" data-details-name>Rocket component</p>
+      <p class="details-contractor" data-details-contractor>Hover or focus a colored region.</p>
+      <p class="details-price" data-details-price></p>
+      <p class="details-description" data-details-description></p>
+      <p class="details-note" data-details-note></p>
+    </section>
+  </aside>
+
+  <section class="stage" aria-label="Interactive rocket diagram">
+    <div
+      class="rocket-slider"
+      data-rocket-slider
+      data-slide-count={rocketSlides.length}
+    >
+      <button class="slider-button" type="button" data-slider-prev aria-label="Previous rocket">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+        </svg>
+      </button>
+
+      <div class="rocket-shell">
+        <div class="rocket-controls">
+          <div class="mode-toggle" role="tablist" aria-label="Rocket data mode">
+            <button class="mode-button is-active" type="button" data-mode-button data-mode="contractors" aria-selected="true">Contractors</button>
+            <button class="mode-button" type="button" data-mode-button data-mode="prices" aria-selected="false">Prices</button>
+          </div>
+        </div>
+
+        <div class="rocket-window">
+          <div class="rocket-track" data-rocket-track>
+            {
+              rocketSlides.map((rocket) => (
+                <article class="rocket-slide" data-rocket-slide aria-label={rocket.label}>
+                  <span class="rocket-label">{rocket.label}</span>
+                  <div set:html={rocket.svg} />
+                </article>
+              ))
+            }
+          </div>
+        </div>
+
+        <div class="rocket-pips" aria-label="Rocket selector">
+          {
+            rocketSlides.map((rocket, index) => (
+              <button
+                class={`rocket-pip${index === 0 ? ' is-active' : ''}`}
+                type="button"
+                data-slider-pip
+                data-slide-index={index}
+                aria-label={`Show ${rocket.label}`}
+                aria-pressed={index === 0 ? 'true' : 'false'}
+              />
+            ))
+          }
+        </div>
+      </div>
+
+      <button class="slider-button" type="button" data-slider-next aria-label="Next rocket">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9.5 5.5 16 12l-6.5 6.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="tooltip" data-tooltip aria-hidden="true">
+      <strong data-tooltip-part></strong>
+      <span data-tooltip-contractor></span>
+      <span data-tooltip-price></span>
+    </div>
+  </section>
+</section>

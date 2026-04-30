@@ -1,0 +1,438 @@
+<header>
+  <h1>NASA Corporate Contract Obligations by Recipient</h1>
+  <p>Source: USAspending.gov <span id="status-sep">·</span> <span id="treemap-status">Loading CSV files…</span></p>
+</header>
+
+<div id="treemap-controls">
+  <div id="year-label">—</div>
+  <button id="play-btn">▶ Play</button>
+  <div id="slider-wrap">
+    <input type="range" id="year-slider" min="0" step="1" value="0" />
+    <div id="tick-labels"></div>
+  </div>
+</div>
+
+<div id="chart-wrap">
+  <svg id="treemap"></svg>
+</div>
+
+<style>
+  header {
+    padding: 20px 32px 12px;
+    border-bottom: 1px solid #1e2740;
+    background: #0b0f1a;
+    color: #e8eaf0;
+  }
+
+  header h1 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #c8d8ff;
+    max-width: none;
+    line-height: 1.3;
+  }
+
+  header p {
+    font-size: 0.8rem;
+    color: #667;
+    margin-top: 3px;
+  }
+
+  #treemap-controls {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 32px;
+    background: #0e1526;
+    border-bottom: 1px solid #1e2740;
+    flex-wrap: wrap;
+  }
+
+  #year-label {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #7aa4ff;
+    min-width: 80px;
+    text-align: center;
+    line-height: 1.1;
+  }
+
+  :global(#year-label .partial) {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: #667;
+    letter-spacing: 0.04em;
+  }
+
+  #play-btn {
+    background: #1e3a8a;
+    border: none;
+    color: #c8d8ff;
+    padding: 7px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    transition: background 0.2s;
+  }
+
+  #play-btn:hover { background: #2d52b8; }
+
+  #slider-wrap {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  #year-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 5px;
+    border-radius: 3px;
+    background: #1e2740;
+    outline: none;
+    cursor: pointer;
+  }
+
+  #year-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #7aa4ff;
+    cursor: pointer;
+    border: 2px solid #0b0f1a;
+  }
+
+  #tick-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.62rem;
+    color: #445;
+    padding: 0 2px;
+  }
+
+  #chart-wrap {
+    flex: 1;
+    padding: 0;
+    position: relative;
+  }
+
+  #treemap {
+    width: 100%;
+    height: calc(100vh - 178px);
+    display: block;
+  }
+
+  :global(.cell rect) {
+    stroke: #0b0f1a;
+    stroke-width: 2px;
+  }
+
+  :global(.cell text) { pointer-events: none; }
+
+  :global(.cell .name) {
+    font-size: 14px;
+    font-weight: 600;
+    fill: #000;
+    dominant-baseline: hanging;
+  }
+
+  :global(.cell .amount) {
+    font-size: 15px;
+    fill: rgba(255, 255, 255, 0.65);
+    dominant-baseline: auto;
+  }
+</style>
+
+<script>
+  import * as d3 from 'd3';
+
+  const FILES = [
+    "/nasa_contracts/FY2008_080_Contracts_Full_20260406_1.csv",
+    "/nasa_contracts/FY2009_080_Contracts_Full_20260406_1.csv",
+    "/nasa_contracts/FY2010_080_Contracts_Full_20260406_1.csv",
+    "/nasa_contracts/FY2011_080_Contracts_Full_20260406_1.csv",
+    "/nasa_contracts/FY2012_080_Contracts_Full_20260406_1.csv",
+    "/nasa_contracts/FY2013_080_Contracts_Full_20260406_1.csv",
+    "/nasa_contracts/FY2014_080_Contracts_Full_20260407_1.csv",
+    "/nasa_contracts/FY2015_080_Contracts_Full_20260407_1.csv",
+    "/nasa_contracts/FY2016_080_Contracts_Full_20260407_1.csv",
+    "/nasa_contracts/FY2017_080_Contracts_Full_20260407_1.csv",
+    "/nasa_contracts/FY2018_080_Contracts_Full_20260407_1.csv",
+    "/nasa_contracts/FY2019_080_Contracts_Full_20260407_1.csv",
+    "/nasa_contracts/FY2020_080_Contracts_Full_20260407_1.csv",
+    "/nasa_contracts/FY2021_080_Contracts_Full_20260407_1.csv",
+    "/nasa_contracts/FY2022_080_Contracts_Full_20260407_1.csv",
+    "/nasa_contracts/FY2023_080_Contracts_Full_20260408_1.csv",
+    "/nasa_contracts/FY2024_080_Contracts_Full_20260408_1.csv",
+    "/nasa_contracts/FY2025_080_Contracts_Full_20260408_1.csv",
+    "/nasa_contracts/FY2026_080_Contracts_Full_20260408_1.csv",
+  ];
+
+  const YEARS = FILES.map(f => f.match(/FY(\d{4})/)![1]);
+
+  const NAMED_COLORS: [RegExp, string][] = [
+    [/north\s*american\s*aviation/i,                 "#8ad5f2"],
+    [/douglas\s*aircraft/i,                          "#63c5ea"],
+    [/lockheed\s*propulsion/i,                       "#7acb98"],
+    [/lockheed/i,                                    "#16a35f"],
+    [/aerojet\s*rocketdyne/i,                        "#e76f33"],
+    [/rocketdyne/i,                                  "#f2a56e"],
+    [/northrop\s*grumman/i,                          "#f5df2e"],
+    [/boeing/i,                                      "#02a9df"],
+    [/teledyne\s*brown/i,                            "#d82f84"],
+    [/\bibm\b|international\s*business\s*machines/i, "#6a4cff"],
+    [/spacex|space\s*exploration\s*technologies/i,   "#f00"],
+  ];
+  const GREY = "#5f6063";
+
+  function recipientColor(name: string) {
+    for (const [re, color] of NAMED_COLORS) {
+      if (re.test(name)) return color;
+    }
+    return GREY;
+  }
+
+  function fmt(n: number) {
+    if (Math.abs(n) >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
+    if (Math.abs(n) >= 1e6) return `$${(n / 1e6).toFixed(1)}M`;
+    return `$${d3.format(",d")(n)}`;
+  }
+
+  let allData: Map<string, number>[] = [];
+  let yearIdx = 0;
+  const topN = 25;
+  let playing = false;
+  let playTimer: ReturnType<typeof setTimeout> | null = null;
+
+  const slider = document.getElementById("year-slider") as HTMLInputElement;
+  const yearLabel = document.getElementById("year-label")!;
+  const playBtn = document.getElementById("play-btn")!;
+  const statusEl = document.getElementById("treemap-status")!;
+  const svg = d3.select("svg#treemap");
+  const g = svg.append("g");
+
+  const tickWrap = document.getElementById("tick-labels")!;
+  YEARS.forEach(y => {
+    const span = document.createElement("span");
+    span.textContent = y;
+    tickWrap.appendChild(span);
+  });
+
+  slider.max = String(YEARS.length - 1);
+  slider.value = "0";
+
+  const CACHE_KEY = "nasaTreemapCache_v1";
+
+  function saveCache(data: Map<string, number>[]) {
+    try {
+      const serialized = data.map(m => Object.fromEntries(m));
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify(serialized));
+    } catch {}
+  }
+
+  function loadCache(): Map<string, number>[] | null {
+    try {
+      const raw = sessionStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as Record<string, number>[];
+      if (parsed.length !== FILES.length) return null;
+      return parsed.map(obj => new Map(Object.entries(obj)));
+    } catch {
+      return null;
+    }
+  }
+
+  async function loadAll() {
+    const cached = loadCache();
+    if (cached) {
+      allData = cached;
+      statusEl.textContent = "All files loaded.";
+      render(0);
+      return;
+    }
+
+    let loaded = 0;
+    const promises = FILES.map(async (file, i) => {
+      const rows = await d3.csv(file, row => ({
+        name: row.recipient_parent_name ? row.recipient_parent_name.trim() : null,
+        val: parseFloat(row.federal_action_obligation ?? '0') || 0,
+      }));
+      const map = new Map<string, number>();
+      for (const r of rows) {
+        if (!r.name) continue;
+        map.set(r.name, (map.get(r.name) || 0) + r.val);
+      }
+      allData[i] = map;
+      loaded++;
+      statusEl.textContent = `Loaded ${loaded} / ${FILES.length} files…`;
+    });
+
+    await Promise.all(promises);
+    saveCache(allData);
+    statusEl.textContent = "All files loaded.";
+    render(0);
+  }
+
+  function wrapText(el: d3.Selection<SVGTextElement, unknown, null, undefined>, name: string, w: number, h: number, showAmount: boolean) {
+    const fontSize = 14;
+    const lineH = 18;
+    const padX = 6;
+    const padY = 6;
+    const reserveBottom = showAmount ? 24 : 4;
+    const availW = w - padX * 2;
+    const availH = h - padY - reserveBottom;
+    const maxLines = Math.max(1, Math.floor(availH / lineH));
+    const charW = fontSize * 0.62;
+
+    const words = name.split(/\s+/);
+    const lines: string[] = [];
+    let cur: string[] = [];
+
+    for (const word of words) {
+      const test = [...cur, word].join(' ');
+      if (test.length * charW > availW && cur.length > 0) {
+        lines.push(cur.join(' '));
+        cur = [word];
+      } else {
+        cur.push(word);
+      }
+    }
+    if (cur.length) lines.push(cur.join(' '));
+
+    const show = lines.slice(0, maxLines);
+    if (lines.length > maxLines && show.length) {
+      let last = show[show.length - 1];
+      while (last.length > 0 && (last + '…').length * charW > availW) {
+        last = last.slice(0, -1).trimEnd();
+      }
+      show[show.length - 1] = last + '…';
+    }
+
+    el.attr("y", padY);
+    show.forEach((line, i) => {
+      el.append("tspan")
+        .attr("x", 6)
+        .attr("dy", i === 0 ? 0 : 18)
+        .text(line);
+    });
+  }
+
+  function getTopN(mapData: Map<string, number>, n: number) {
+    return [...mapData.entries()]
+      .filter(([name, v]) => v > 0 && !/university|universities|institute/i.test(name))
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, n)
+      .map(([name, value]) => ({ name, value }));
+  }
+
+  function render(idx: number, animate = false) {
+    yearIdx = idx;
+    yearLabel.innerHTML = "FY" + YEARS[idx] +
+      (YEARS[idx] === "2026" ? '<span class="partial">(PARTIAL)</span>' : "");
+    slider.value = String(idx);
+
+    const svgEl = document.getElementById("treemap") as SVGElement;
+    const W = svgEl.clientWidth || 800;
+    const H = svgEl.clientHeight || 500;
+
+    const items = getTopN(allData[idx], topN);
+
+    const root = d3.hierarchy<{ children?: { name: string; value: number }[] }>({ children: items })
+      .sum(d => (d as any).value ?? 0)
+      .sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
+
+    d3.treemap<any>()
+      .size([W, H])
+      .paddingOuter(4)
+      .paddingInner(2)
+      .round(true)(root);
+
+    const leaves = root.leaves();
+    const cells = g.selectAll<SVGGElement, d3.HierarchyRectangularNode<any>>(".cell")
+      .data(leaves, d => d.data.name);
+
+    const enter = cells.enter().append("g").attr("class", "cell");
+    enter.append("rect");
+    enter.append("text").attr("class", "name");
+    enter.append("text").attr("class", "amount");
+
+    const merged = enter.merge(cells);
+    const t = d3.transition().duration(animate ? 600 : 0).ease(d3.easeCubicInOut);
+
+    merged.transition(t).attr("transform", d => `translate(${d.x0},${d.y0})`);
+
+    merged.select("rect")
+      .transition(t)
+      .attr("width", d => Math.max(0, d.x1 - d.x0))
+      .attr("height", d => Math.max(0, d.y1 - d.y0))
+      .attr("fill", d => recipientColor(d.data.name))
+      .attr("opacity", 0.85);
+
+    merged.each(function(d) {
+      const w = Math.max(0, d.x1 - d.x0);
+      const h = Math.max(0, d.y1 - d.y0);
+      const cell = d3.select<SVGGElement, typeof d>(this);
+      const showAmt = w >= 80 && h >= 50;
+
+      const nameEl = cell.select<SVGTextElement>(".name");
+      nameEl.selectAll("tspan").remove();
+      nameEl.text("");
+      if (w >= 50 && h >= 25) wrapText(nameEl, d.data.name, w, h, showAmt);
+
+      const amtEl = cell.select(".amount");
+      if (showAmt) {
+        amtEl.attr("x", 6).attr("y", h - 7).text(fmt(d.data.value));
+      } else {
+        amtEl.text("");
+      }
+    });
+
+    cells.exit().transition(t).style("opacity", 0).remove();
+  }
+
+  slider.addEventListener("input", () => {
+    stopPlay();
+    if (allData[+slider.value]) render(+slider.value, true);
+  });
+
+  playBtn.addEventListener("click", () => {
+    if (playing) stopPlay();
+    else startPlay();
+  });
+
+  function startPlay() {
+    playing = true;
+    playBtn.textContent = "⏸ Pause";
+    if (yearIdx >= YEARS.length - 1) yearIdx = 0;
+    step();
+  }
+
+  function stopPlay() {
+    playing = false;
+    playBtn.textContent = "▶ Play";
+    if (playTimer) clearTimeout(playTimer);
+  }
+
+  function step() {
+    if (!playing) return;
+    render(yearIdx, true);
+    if (yearIdx < YEARS.length - 1) {
+      yearIdx++;
+      playTimer = setTimeout(step, 1400);
+    } else {
+      stopPlay();
+    }
+  }
+
+  window.addEventListener("resize", () => {
+    if (allData[yearIdx]) render(yearIdx, false);
+  });
+
+  loadAll();
+</script>

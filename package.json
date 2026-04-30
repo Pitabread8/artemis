@@ -12,6 +12,8 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^6.1.10"
+    "astro": "^6.1.10",
+    "chart.js": "^4.5.1",
+    "d3": "^7.9.0"
   }
 }
