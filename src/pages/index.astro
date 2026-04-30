@@ -2026,7 +2026,7 @@ const artemisSlide = rocketSlides.find((rocket) => rocket.slug === 'artemis');
     <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12"></script>
     <script type="module">
 
-      const astro = await d3.csv("./artemis/astronauts/astro.csv");
+      const astro = await d3.csv("./astronauts/astro.csv");
       const occupationFix = {
         "Pilot": "pilot",
         "Flight engineer": "flight engineer",
@@ -2057,22 +2057,22 @@ const artemisSlide = rocketSlides.find((rocket) => rocket.slug === 'artemis');
       let artemisAstronauts = [
         {
           name: "Reid Wiseman", nationality: "U.S.", occupation: "commander", sex: "male", year_of_selection: "2009", military_civilian: "military", id: "rwiseman",
-          photo: "./artemis/astronauts/reidwiseman.webp",
+          photo: "./astronauts/reidwiseman.webp",
           bio: "Reid Wiseman is an American astronaut, engineer, and former U.S. Navy test pilot who recently commanded Artemis II, the first crewed Artemis mission and the first human mission around the Moon since Apollo 17. He led the four-person crew aboard NASA's Orion spacecraft on a nearly 10-day journey that tested systems for future lunar landings. Before Artemis II, Wiseman spent about 165 days aboard the International Space Station in 2014 and later served as NASA's Chief of the Astronaut Office. Known for both technical skill and leadership, he has become one of the key figures in NASA's return to deep-space exploration."
         },
         {
           name: "Victor Glover", nationality: "U.S.", occupation: "pilot", sex: "male", year_of_selection: "2013", military_civilian: "military", id: "wglover",
-          photo: "./artemis/astronauts/victorglover.webp",
+          photo: "./astronauts/victorglover.webp",
           bio: "Victor Glover is an American astronaut, U.S. Navy captain, and former test pilot who recently served as the pilot of Artemis II, the first crewed Artemis mission around the Moon. He helped operate NASA's Orion spacecraft during the historic 2026 flight, the first human lunar mission since Apollo. Before Artemis II, Glover flew on SpaceX Crew-1 to the International Space Station, where he spent 168 days in space and completed four spacewalks. He is also recognized as the first Black astronaut to live aboard the ISS and one of the first people of color to travel into deep space."
         },
         {
           name: "Christina Koch", nationality: "U.S.", occupation: "Mission Specialist", sex: "female", year_of_selection: "2013", military_civilian: "civilian",
-          id: "ckoch", photo: "./artemis/astronauts/christinakoch.webp",
+          id: "ckoch", photo: "./astronauts/christinakoch.webp",
           bio: "Christina Koch is an American astronaut and engineer who recently served as a mission specialist on Artemis II, the first crewed Artemis mission to fly around the Moon. She became one of the key members of NASA's return to deep-space exploration aboard the Orion spacecraft. Before Artemis II, Koch was already widely known for setting the record for the longest single spaceflight by a woman, spending 328 days aboard the International Space Station from 2019 to 2020. She also took part in the first all-woman spacewalk with Jessica Meir. Her Artemis II role further cemented her place as one of NASA's most accomplished modern astronauts."
         },
         {
           name: "Jeremy Hansen", nationality: "Canada", occupation: "Mission Specialist", sex: "male", year_of_selection: "2009", military_civilian: "military",
-          id: "jhansen", photo: "./artemis/astronauts/jeremyhansen.webp",
+          id: "jhansen", photo: "./astronauts/jeremyhansen.webp",
           bio: "Jeremy Hansen is a Canadian astronaut and Royal Canadian Air Force colonel who recently flew on Artemis II, the first crewed mission of NASA's Artemis program. He made history as the first Canadian and first non-American to travel into the lunar environment on a mission around the Moon. Hansen served as a mission specialist alongside Reid Wiseman, Victor Glover, and Christina Koch. The roughly 10-day mission launched on April 1, 2026, flew around the Moon, and safely splashed down on April 10. Before Artemis II, Hansen had never flown in space, making this a major milestone in both his career and Canadian space history. He represents Canadian Space Agency and is seen as a key figure in Canada's growing role in future lunar exploration."
         },
       ];
