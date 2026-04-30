@@ -76,6 +76,12 @@
     font-size: 0.85rem;
     letter-spacing: 0.04em;
     transition: background 0.2s;
+    width: 90px;
+    height: 34px;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   #play-btn:hover { background: #2d52b8; }
@@ -152,30 +158,11 @@
 <script>
   import * as d3 from 'd3';
 
-  const BASE = "https://github.com/Pitabread8/artemis/releases/download/data-v1";
-  const FILES = [
-    `${BASE}/FY2008_080_Contracts_Full_20260406_1.csv`,
-    `${BASE}/FY2009_080_Contracts_Full_20260406_1.csv`,
-    `${BASE}/FY2010_080_Contracts_Full_20260406_1.csv`,
-    `${BASE}/FY2011_080_Contracts_Full_20260406_1.csv`,
-    `${BASE}/FY2012_080_Contracts_Full_20260406_1.csv`,
-    `${BASE}/FY2013_080_Contracts_Full_20260406_1.csv`,
-    `${BASE}/FY2014_080_Contracts_Full_20260407_1.csv`,
-    `${BASE}/FY2015_080_Contracts_Full_20260407_1.csv`,
-    `${BASE}/FY2016_080_Contracts_Full_20260407_1.csv`,
-    `${BASE}/FY2017_080_Contracts_Full_20260407_1.csv`,
-    `${BASE}/FY2018_080_Contracts_Full_20260407_1.csv`,
-    `${BASE}/FY2019_080_Contracts_Full_20260407_1.csv`,
-    `${BASE}/FY2020_080_Contracts_Full_20260407_1.csv`,
-    `${BASE}/FY2021_080_Contracts_Full_20260407_1.csv`,
-    `${BASE}/FY2022_080_Contracts_Full_20260407_1.csv`,
-    `${BASE}/FY2023_080_Contracts_Full_20260408_1.csv`,
-    `${BASE}/FY2024_080_Contracts_Full_20260408_1.csv`,
-    `${BASE}/FY2025_080_Contracts_Full_20260408_1.csv`,
-    `${BASE}/FY2026_080_Contracts_Full_20260408_1.csv`,
+  const YEARS = [
+    "2008","2009","2010","2011","2012","2013","2014","2015",
+    "2016","2017","2018","2019","2020","2021","2022","2023",
+    "2024","2025","2026",
   ];
-
-  const YEARS = FILES.map(f => f.match(/FY(\d{4})/)![1]);
 
   const NAMED_COLORS: [RegExp, string][] = [
     [/north\s*american\s*aviation/i,                 "#8ad5f2"],
@@ -228,54 +215,10 @@
   slider.max = String(YEARS.length - 1);
   slider.value = "0";
 
-  const CACHE_KEY = "nasaTreemapCache_v1";
-
-  function saveCache(data: Map<string, number>[]) {
-    try {
-      const serialized = data.map(m => Object.fromEntries(m));
-      sessionStorage.setItem(CACHE_KEY, JSON.stringify(serialized));
-    } catch {}
-  }
-
-  function loadCache(): Map<string, number>[] | null {
-    try {
-      const raw = sessionStorage.getItem(CACHE_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw) as Record<string, number>[];
-      if (parsed.length !== FILES.length) return null;
-      return parsed.map(obj => new Map(Object.entries(obj)));
-    } catch {
-      return null;
-    }
-  }
-
   async function loadAll() {
-    const cached = loadCache();
-    if (cached) {
-      allData = cached;
-      statusEl.textContent = "All files loaded.";
-      render(0);
-      return;
-    }
-
-    let loaded = 0;
-    const promises = FILES.map(async (file, i) => {
-      const rows = await d3.csv(file, row => ({
-        name: row.recipient_parent_name ? row.recipient_parent_name.trim() : null,
-        val: parseFloat(row.federal_action_obligation ?? '0') || 0,
-      }));
-      const map = new Map<string, number>();
-      for (const r of rows) {
-        if (!r.name) continue;
-        map.set(r.name, (map.get(r.name) || 0) + r.val);
-      }
-      allData[i] = map;
-      loaded++;
-      statusEl.textContent = `Loaded ${loaded} / ${FILES.length} files…`;
-    });
-
-    await Promise.all(promises);
-    saveCache(allData);
+    statusEl.textContent = "Loading…";
+    const json: Record<string, Record<string, number>> = await fetch(`${import.meta.env.BASE_URL}nasa_contracts_aggregated.json`).then(r => r.json());
+    allData = YEARS.map(y => new Map(Object.entries(json[y] ?? {})));
     statusEl.textContent = "All files loaded.";
     render(0);
   }
