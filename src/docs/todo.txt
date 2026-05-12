@@ -1,5 +1,3 @@
 - add more writing, especially for conclusion
-- add the SpaceX stuff
-- add the other rockets
 - implement scrolly
 - update bibliography

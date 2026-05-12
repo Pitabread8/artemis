@@ -1,3 +1,5 @@
+<div id="barchart-root">
+
 <header>
   <h1>NASA Corporate Contract Obligations by Recipient</h1>
   <p>Source: USAspending.gov</p>
@@ -16,26 +18,37 @@
   <svg id="treemap"></svg>
 </div>
 
+</div>
+
 <style>
+  #barchart-root {
+    display: flex;
+    flex-direction: column;
+    height: 860px;
+    background: var(--paper);
+    font-family: var(--font);
+  }
+
   header {
     padding: 20px 32px 12px;
-    border-bottom: 1px solid #1e2740;
-    background: #0b0f1a;
-    color: #e8eaf0;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    flex-shrink: 0;
   }
 
   header h1 {
     font-size: 1.4rem;
     font-weight: 600;
     letter-spacing: 0.02em;
-    color: #c8d8ff;
+    color: var(--ink);
     max-width: none;
     line-height: 1.3;
   }
 
   header p {
     font-size: 0.8rem;
-    color: #667;
+    color: var(--muted);
     margin-top: 3px;
   }
 
@@ -44,32 +57,25 @@
     align-items: center;
     gap: 18px;
     padding: 14px 32px;
-    background: #0e1526;
-    border-bottom: 1px solid #1e2740;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
     flex-wrap: wrap;
+    flex-shrink: 0;
   }
 
   #year-label {
     font-size: 2rem;
     font-weight: 700;
-    color: #7aa4ff;
+    color: var(--ink);
     min-width: 80px;
     text-align: center;
     line-height: 1.1;
   }
 
-  :global(#year-label .partial) {
-    display: block;
-    font-size: 0.7rem;
-    font-weight: 400;
-    color: #667;
-    letter-spacing: 0.04em;
-  }
-
   #play-btn {
-    background: #1e3a8a;
+    background: var(--ink);
     border: none;
-    color: #c8d8ff;
+    color: #fff;
     padding: 7px 18px;
     border-radius: 6px;
     cursor: pointer;
@@ -84,7 +90,7 @@
     justify-content: center;
   }
 
-  #play-btn:hover { background: #2d52b8; }
+  #play-btn:hover { background: #333; }
 
   #slider-wrap {
     flex: 1;
@@ -99,7 +105,7 @@
     width: 100%;
     height: 5px;
     border-radius: 3px;
-    background: #1e2740;
+    background: var(--line);
     outline: none;
     cursor: pointer;
   }
@@ -109,51 +115,62 @@
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: #7aa4ff;
+    background: var(--ink);
     cursor: pointer;
-    border: 2px solid #0b0f1a;
+    border: 2px solid var(--paper);
   }
 
   #tick-labels {
     display: flex;
     justify-content: space-between;
     font-size: 0.62rem;
-    color: #445;
+    color: var(--muted);
     padding: 0 2px;
   }
 
   #chart-wrap {
     flex: 1;
+    min-height: 0;
     padding: 0;
     position: relative;
+    background: var(--paper);
   }
 
   #treemap {
     width: 100%;
-    height: calc(100vh - 178px);
+    height: 100%;
     display: block;
     font-family: var(--font);
   }
 
-  :global(.cell rect) {
-    stroke: #0b0f1a;
-    stroke-width: 2px;
+  :global(#treemap .bar-name) {
+    fill: #444;
+    font-size: 12px;
+    dominant-baseline: middle;
+    text-anchor: end;
   }
 
-  :global(.cell text) { pointer-events: none; }
-
-  :global(.cell .name) {
+  :global(#treemap .bar-value) {
+    fill: #555;
     font-size: 14px;
-    font-weight: 600;
-    fill: #000;
-    dominant-baseline: hanging;
+    dominant-baseline: middle;
+    font-weight: 500;
   }
 
-  :global(.cell .amount) {
-    font-size: 15px;
-    fill: rgba(255, 255, 255, 0.65);
-    dominant-baseline: auto;
+  :global(#treemap .x-axis .tick text) {
+    fill: #888;
+    font-size: 10px;
   }
+
+  :global(#treemap .x-axis .domain) { stroke: #ddd; }
+  :global(#treemap .x-axis .tick line) { stroke: #ddd; }
+
+  :global(#treemap .grid .tick line) {
+    stroke: #e8e8e8;
+    stroke-dasharray: 3 3;
+  }
+
+  :global(#treemap .grid .domain) { display: none; }
 </style>
 
 <script>
@@ -162,7 +179,7 @@
   const YEARS = [
     "2008","2009","2010","2011","2012","2013","2014","2015",
     "2016","2017","2018","2019","2020","2021","2022","2023",
-    "2024","2025","2026",
+    "2024","2025",
   ];
 
   const NAMED_COLORS: [RegExp, string][] = [
@@ -179,6 +196,10 @@
     [/spacex|space\s*exploration\s*technologies/i,   "#f00"],
   ];
   const GREY = "#5f6063";
+  const topN = 12;
+  const margin = { top: 52, right: 130, bottom: 38, left: 220 };
+  const lineH = 14;
+  const maxLabelChars = 22;
 
   function recipientColor(name: string) {
     for (const [re, color] of NAMED_COLORS) {
@@ -193,17 +214,48 @@
     return `$${d3.format(",d")(n)}`;
   }
 
+  function wrapName(name: string): string[] {
+    const maxChars = maxLabelChars;
+    const words = name.split(/\s+/);
+    const lines: string[] = [];
+    let cur = '';
+    for (const w of words) {
+      const test = cur ? cur + ' ' + w : w;
+      if (test.length <= maxChars) {
+        cur = test;
+      } else {
+        if (cur) lines.push(cur);
+        cur = w.length > maxChars ? w.slice(0, maxChars - 1) + '…' : w;
+      }
+    }
+    if (cur) lines.push(cur);
+    return lines.slice(0, 3);
+  }
+
+  function getTopN(mapData: Map<string, number>, n: number) {
+    return [...mapData.entries()]
+      .filter(([name, v]) => v > 0 && !/university|universities|institute/i.test(name))
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, n)
+      .map(([name, value], rank) => ({ name, value, rank }));
+  }
+
   let allData: Map<string, number>[] = [];
   let yearIdx = 0;
-  const topN = 25;
   let playing = false;
   let playTimer: ReturnType<typeof setTimeout> | null = null;
+  let lastW = 0, lastH = 0;
+  let globalMax = 0;
+  let prevTotal = 0;
+
+  let g: any, barsG: any, nameLabelsG: any, valueLabelsG: any, xAxisG: any, gridG: any;
+  let totalValueEl: any = null;
 
   const slider = document.getElementById("year-slider") as HTMLInputElement;
   const yearLabel = document.getElementById("year-label")!;
   const playBtn = document.getElementById("play-btn")!;
-const svg = d3.select("svg#treemap");
-  const g = svg.append("g");
+  const chartWrap = document.getElementById("chart-wrap")!;
+  const svg = d3.select<SVGSVGElement, unknown>("svg#treemap");
 
   const tickWrap = document.getElementById("tick-labels")!;
   YEARS.forEach(y => {
@@ -215,121 +267,141 @@ const svg = d3.select("svg#treemap");
   slider.max = String(YEARS.length - 1);
   slider.value = "0";
 
-  function wrapText(el: d3.Selection<SVGTextElement, unknown, null, undefined>, name: string, w: number, h: number, showAmount: boolean) {
-    const fontSize = 14;
-    const lineH = 18;
-    const padX = 6;
-    const padY = 6;
-    const reserveBottom = showAmount ? 24 : 4;
-    const availW = w - padX * 2;
-    const availH = h - padY - reserveBottom;
-    const maxLines = Math.max(1, Math.floor(availH / lineH));
-    const charW = fontSize * 0.62;
+  function initChart(innerW: number, innerH: number) {
+    svg.selectAll("*").remove();
+    g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-    const words = name.split(/\s+/);
-    const lines: string[] = [];
-    let cur: string[] = [];
+    g.append("text")
+      .attr("x", innerW)
+      .attr("y", -34)
+      .attr("text-anchor", "end")
+      .attr("fill", "#aaa")
+      .attr("font-size", "9px")
+      .attr("letter-spacing", "0.1em")
+      .text("TOTAL NASA CONTRACTS");
 
-    for (const word of words) {
-      const test = [...cur, word].join(' ');
-      if (test.length * charW > availW && cur.length > 0) {
-        lines.push(cur.join(' '));
-        cur = [word];
-      } else {
-        cur.push(word);
-      }
-    }
-    if (cur.length) lines.push(cur.join(' '));
+    totalValueEl = g.append("text")
+      .attr("x", innerW)
+      .attr("y", -12)
+      .attr("text-anchor", "end")
+      .attr("fill", "#222")
+      .attr("font-size", "22px")
+      .attr("font-weight", "700");
 
-    const show = lines.slice(0, maxLines);
-    if (lines.length > maxLines && show.length) {
-      let last = show[show.length - 1];
-      while (last.length > 0 && (last + '…').length * charW > availW) {
-        last = last.slice(0, -1).trimEnd();
-      }
-      show[show.length - 1] = last + '…';
-    }
-
-    el.attr("y", padY);
-    show.forEach((line, i) => {
-      el.append("tspan")
-        .attr("x", 6)
-        .attr("dy", i === 0 ? 0 : 18)
-        .text(line);
-    });
-  }
-
-  function getTopN(mapData: Map<string, number>, n: number) {
-    return [...mapData.entries()]
-      .filter(([name, v]) => v > 0 && !/university|universities|institute/i.test(name))
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, n)
-      .map(([name, value]) => ({ name, value }));
+    gridG       = g.append("g").attr("class", "grid").attr("transform", `translate(0,${innerH})`);
+    barsG       = g.append("g").attr("class", "bars");
+    nameLabelsG = g.append("g");
+    valueLabelsG= g.append("g");
+    xAxisG      = g.append("g").attr("class", "x-axis").attr("transform", `translate(0,${innerH})`);
   }
 
   function render(idx: number, animate = false) {
     yearIdx = idx;
-    yearLabel.innerHTML = "FY" + YEARS[idx] +
-      (YEARS[idx] === "2026" ? '<span class="partial">(PARTIAL)</span>' : "");
+    yearLabel.textContent = "FY" + YEARS[idx];
     slider.value = String(idx);
 
-    const svgEl = document.getElementById("treemap") as SVGElement;
-    const W = svgEl.clientWidth || 800;
-    const H = svgEl.clientHeight || 500;
+    const W = chartWrap.clientWidth || 800;
+    const H = chartWrap.clientHeight || 560;
+    const innerW = W - margin.left - margin.right;
+    const innerH = H - margin.top - margin.bottom;
+
+    if (W !== lastW || H !== lastH) {
+      svg.attr("width", W).attr("height", H);
+      initChart(innerW, innerH);
+      lastW = W; lastH = H;
+    }
 
     const items = getTopN(allData[idx], topN);
+    const barSlotH = innerH / topN;
+    const barH = Math.max(1, barSlotH - 5);
 
-    const root = d3.hierarchy<{ children?: { name: string; value: number }[] }>({ children: items })
-      .sum(d => (d as any).value ?? 0)
-      .sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
+    // Fixed global scale — domain never changes after load
+    const xScale = d3.scaleLinear().domain([0, globalMax]).range([0, innerW]);
 
-    d3.treemap<any>()
-      .size([W, H])
-      .paddingOuter(4)
-      .paddingInner(2)
-      .round(true)(root);
+    const dur = animate ? 700 : 0;
+    const t = d3.transition().duration(dur).ease(d3.easeCubicInOut);
 
-    const leaves = root.leaves();
-    const cells = g.selectAll<SVGGElement, d3.HierarchyRectangularNode<any>>(".cell")
-      .data(leaves, d => d.data.name);
+    // Animated total counter
+    const grandTotal = [...allData[idx].values()].reduce((a, b) => a + b, 0);
+    const fromTotal = prevTotal;
+    if (totalValueEl) {
+      totalValueEl.transition(t).tween("text", function(this: SVGTextElement) {
+        const el = this;
+        const interp = d3.interpolateNumber(fromTotal, grandTotal);
+        return (frac: number) => { d3.select(el).text(fmt(interp(frac))); };
+      });
+    }
+    prevTotal = grandTotal;
 
-    const enter = cells.enter().append("g").attr("class", "cell");
-    enter.append("rect");
-    enter.append("text").attr("class", "name");
-    enter.append("text").attr("class", "amount");
+    // Grid lines
+    gridG.transition(t).call(
+      (d3.axisBottom(xScale).ticks(5).tickSize(-innerH).tickFormat(() => "")) as any
+    );
 
-    const merged = enter.merge(cells);
-    const t = d3.transition().duration(animate ? 600 : 0).ease(d3.easeCubicInOut);
+    // X axis
+    xAxisG.transition(t).call(
+      (d3.axisBottom(xScale).ticks(5).tickFormat(d => fmt(d as number))) as any
+    );
+    xAxisG.select(".domain").attr("stroke", "#ddd");
+    xAxisG.selectAll(".tick line").attr("stroke", "#ddd");
+    xAxisG.selectAll(".tick text").style("fill", "#888").style("font-size", "10px");
 
-    merged.transition(t).attr("transform", d => `translate(${d.x0},${d.y0})`);
+    // Bars
+    const bars = barsG.selectAll(".bar").data(items, (d: any) => d.name);
 
-    merged.select("rect")
-      .transition(t)
-      .attr("width", d => Math.max(0, d.x1 - d.x0))
-      .attr("height", d => Math.max(0, d.y1 - d.y0))
-      .attr("fill", d => recipientColor(d.data.name))
-      .attr("opacity", 0.85);
+    bars.enter().append("rect").attr("class", "bar")
+      .attr("x", 0).attr("y", innerH).attr("height", barH).attr("width", 0)
+      .attr("fill", (d: any) => recipientColor(d.name)).attr("opacity", 0);
 
-    merged.each(function(d) {
-      const w = Math.max(0, d.x1 - d.x0);
-      const h = Math.max(0, d.y1 - d.y0);
-      const cell = d3.select<SVGGElement, typeof d>(this);
-      const showAmt = w >= 80 && h >= 50;
+    barsG.selectAll(".bar").transition(t)
+      .attr("y", (d: any) => d.rank * barSlotH)
+      .attr("height", barH)
+      .attr("width", (d: any) => Math.max(0, xScale(d.value)))
+      .attr("fill", (d: any) => recipientColor(d.name))
+      .attr("opacity", 0.88);
 
-      const nameEl = cell.select<SVGTextElement>(".name");
-      nameEl.selectAll("tspan").remove();
-      nameEl.text("");
-      if (w >= 50 && h >= 25) wrapText(nameEl, d.data.name, w, h, showAmt);
+    bars.exit().transition(t).attr("y", innerH).attr("opacity", 0).remove();
 
-      const amtEl = cell.select(".amount");
-      if (showAmt) {
-        amtEl.attr("x", 6).attr("y", h - 7).text(fmt(d.data.value));
-      } else {
-        amtEl.text("");
-      }
+    // Name labels with multi-line wrapping — uniform color via CSS
+    const names = nameLabelsG.selectAll(".bar-name").data(items, (d: any) => d.name);
+
+    const namesEnter = names.enter().append("text").attr("class", "bar-name")
+      .attr("x", -22)
+      .attr("y", innerH)
+      .attr("font-weight", (d: any) => recipientColor(d.name) !== GREY ? "700" : "400")
+      .attr("opacity", 0);
+
+    // Tspans set once on enter; name never changes for a given company key
+    namesEnter.each(function(this: SVGTextElement, d: any) {
+      const lines = wrapName(d.name);
+      const el = d3.select(this);
+      lines.forEach((line, i) => {
+        el.append("tspan")
+          .attr("x", -22)
+          .attr("dy", i === 0 ? -(lines.length - 1) * lineH / 2 : lineH)
+          .text(line);
+      });
     });
 
-    cells.exit().transition(t).style("opacity", 0).remove();
+    nameLabelsG.selectAll(".bar-name").transition(t)
+      .attr("y", (d: any) => d.rank * barSlotH + barH / 2)
+      .attr("opacity", 1);
+
+    names.exit().transition(t).attr("y", innerH).attr("opacity", 0).remove();
+
+    // Value labels — uniform color via CSS
+    const vals = valueLabelsG.selectAll(".bar-value").data(items, (d: any) => d.name);
+
+    vals.enter().append("text").attr("class", "bar-value")
+      .attr("x", 0).attr("y", innerH).attr("opacity", 0);
+
+    valueLabelsG.selectAll(".bar-value").transition(t)
+      .attr("x", (d: any) => Math.max(0, xScale(d.value)) + 8)
+      .attr("y", (d: any) => d.rank * barSlotH + barH / 2)
+      .attr("opacity", 1)
+      .text((d: any) => fmt(d.value));
+
+    vals.exit().transition(t).attr("opacity", 0).remove();
   }
 
   slider.addEventListener("input", () => {
@@ -338,8 +410,7 @@ const svg = d3.select("svg#treemap");
   });
 
   playBtn.addEventListener("click", () => {
-    if (playing) stopPlay();
-    else startPlay();
+    if (playing) stopPlay(); else startPlay();
   });
 
   function startPlay() {
@@ -374,6 +445,14 @@ const svg = d3.select("svg#treemap");
     const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     const json: Record<string, Record<string, number>> = await fetch(`${base}/nasa_contracts_aggregated.json`).then(r => r.json());
     allData = YEARS.map(y => new Map(Object.entries(json[y] ?? {})));
+
+    // Compute global max across all years so x scale never changes
+    globalMax = 0;
+    allData.forEach(map => {
+      const top = getTopN(map, 1);
+      if (top.length > 0) globalMax = Math.max(globalMax, top[0].value);
+    });
+
     render(0);
   }
 

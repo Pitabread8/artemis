@@ -53,7 +53,7 @@ import ArticleText from '../components/ArticleText.mdx';
       }
 
       .article-intro {
-        padding: 34px 28px 30px;
+        padding: 34px 14px 30px;
         background: var(--paper);
       }
 
@@ -75,9 +75,9 @@ import ArticleText from '../components/ArticleText.mdx';
 
       .article-title {
         margin: 0;
-        max-width: 12ch;
-        font-size: clamp(2.6rem, 6vw, 5.5rem);
-        line-height: 0.94;
+        max-width: none;
+        font-size: clamp(2.4rem, 5.5vw, 5rem);
+        line-height: 1.05;
         letter-spacing: -0.03em;
       }
 
@@ -609,8 +609,7 @@ import ArticleText from '../components/ArticleText.mdx';
         }
 
         .article-title {
-          max-width: none;
-          font-size: 2.8rem;
+          font-size: clamp(1.8rem, 6vw, 2.8rem);
         }
 
         .page {
@@ -698,7 +697,7 @@ import ArticleText from '../components/ArticleText.mdx';
       <section class="article-intro" aria-labelledby="article-title">
         <div class="article-intro__inner">
           <p class="article-kicker">Bryan Ammons, Kevin Durand, Mannat Jain, and Sita Vemuri</p>
-          <h1 class="article-title" id="article-title">Next!: Artemis II and the Modern Space Age</h1>
+          <h1 class="article-title" id="article-title">Next!: Artemis II and<br>the Modern Space Age</h1>
           <!-- <p class=”article-subtitle”>A working article about what the Artemis program reveals about NASA’s dependence on private industry, and how that relationship has changed since Apollo.</p> -->
           <div class=”article-content”>
             <ArticleText />
