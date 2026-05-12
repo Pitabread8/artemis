@@ -1,5 +1,4 @@
 ---
-import { priceBibliography } from '../lib/rocket';
 import ArticleText from '../components/ArticleText.mdx';
 ---
 
@@ -556,6 +555,34 @@ import ArticleText from '../components/ArticleText.mdx';
         line-height: 1.45;
       }
 
+      .site-footer {
+        padding: clamp(18px, 3vw, 28px) clamp(18px, 4vw, 42px);
+        border-top: 1px solid var(--line);
+        background: var(--paper);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .site-footer p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      .site-footer a {
+        color: #1a6db5;
+        font-size: 0.82rem;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      .site-footer a:hover {
+        color: #0f4f8a;
+      }
+
       .viz-band {
         display: grid;
         grid-template-columns: minmax(220px, 280px) 1fr;
@@ -725,20 +752,12 @@ import ArticleText from '../components/ArticleText.mdx';
         </div>
       </section>
 
-      <section class="bibliography" aria-labelledby="bibliography-title">
-        <h2 id="bibliography-title">Data Bibliography</h2>
-        <div class="bibliography-list">
-          {
-            priceBibliography.map((entry) => (
-              <div class="bibliography-item">
-                <a href={entry.url} target="_blank" rel="noreferrer">{entry.title}</a>
-                <p>{entry.note}</p>
-              </div>
-            ))
-          }
-        </div>
-      </section>
     </main>
+
+    <footer class="site-footer">
+      <p>Bryan Ammons, Kevin Durand, Mannat Jain, and Sita Vemuri</p>
+      <a href={`${import.meta.env.BASE_URL}/documentation`}>Documentation</a>
+    </footer>
 
     <script>
       function initDiagramPanel(root) {

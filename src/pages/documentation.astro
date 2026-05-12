@@ -1,0 +1,178 @@
+---
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Documentation — Next!: Artemis II and the Modern Space Age</title>
+    <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.ico`} sizes="any" />
+    <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} type="image/svg+xml" />
+    <style>
+      :root {
+        color-scheme: light;
+        --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family: var(--font);
+        --ink: #141414;
+        --muted: #62666d;
+        --line: #d9d9d9;
+        --paper: #fbfbf8;
+        --panel: #ffffff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        background: var(--paper);
+        color: var(--ink);
+      }
+
+      .doc-shell {
+        width: min(100%, 760px);
+        margin: 0 auto;
+        padding: clamp(32px, 6vw, 72px) clamp(18px, 4vw, 32px);
+      }
+
+      .doc-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 36px;
+        color: var(--muted);
+        font-size: 0.88rem;
+        text-decoration: none;
+        letter-spacing: 0.04em;
+      }
+
+      .doc-back:hover {
+        color: var(--ink);
+      }
+
+      .doc-back svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .doc-kicker {
+        margin: 0 0 10px;
+        color: var(--muted);
+        font-size: 0.78rem;
+        line-height: 1;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .doc-title {
+        margin: 0 0 48px;
+        font-size: clamp(2rem, 5vw, 3.4rem);
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+      }
+
+      .doc-section {
+        margin-bottom: 40px;
+        padding-bottom: 40px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .doc-section:last-child {
+        border-bottom: none;
+      }
+
+      .doc-section h2 {
+        margin: 0 0 14px;
+        font-size: 1.1rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .doc-section p {
+        margin: 0 0 12px;
+        font-size: 1rem;
+        line-height: 1.75;
+        color: var(--ink);
+        max-width: 68ch;
+      }
+
+      .doc-section p:last-child {
+        margin-bottom: 0;
+      }
+
+      .doc-section a {
+        color: var(--ink);
+      }
+
+      .doc-section a:hover {
+        color: var(--muted);
+      }
+
+
+      @media (max-width: 600px) {
+        .doc-title {
+          margin-bottom: 36px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="doc-shell">
+      <a href={import.meta.env.BASE_URL} class="doc-back">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M9 2L4 7l5 5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Back to project
+      </a>
+
+      <p class="doc-kicker">Bryan Ammons, Kevin Durand, Mannat Jain, and Sita Vemuri</p>
+      <h1 class="doc-title">Next!: Artemis II and<br>the Modern Space Age</h1>
+
+      <div class="doc-section">
+        <h2>Introduction</h2>
+        <p>For our project we wanted to focus on teaching the economy behind space travel as well as how space travel has changed over time with a bigger push in the private sector over governmental space flights. With the recent launch of the Artemis II spaceship, many people are not aware of the work that goes behind building these spaceships, especially how distributed it is among many subcontractors. We wanted to highlight not only the scale of the money that goes into building these types of spaceships but the method in which NASA employs subcontractors to distribute the work for this project. While this has been their main method of building spaceships newer companies like SpaceX have completely changed this and through vertical integration have been able to build a full spaceship completely inhouse.</p>
+      </div>
+
+      <div class="doc-section">
+        <h2>Related Work</h2>
+        <p>Space data is a goldmine for visualization, and there were many projects and datasets we took inspiration from. Some visualizations we looked at were the <a href="https://www.faa.gov/data_research/commercial_space_data" target="_blank" rel="noreferrer">Federal Aviation Administration's "Commercial Space Data" dashboard</a>, the <a href="https://aerospace.csis.org/data/spaceports-of-the-world/" target="_blank" rel="noreferrer">Center for Strategic and International Studies "Spaceports of the World" map</a>, as well as a <a href="https://nattybumppo.github.io/rocket-launch-history/" target="_blank" rel="noreferrer">geographic timelapse of rocket launches</a>.</p>
+      </div>
+
+      <div class="doc-section">
+        <h2>Methodology</h2>
+        <p>Contractor data from the NASA missions was collected from <a href="http://nasa.gov" target="_blank" rel="noreferrer">nasa.gov</a> and verified using the contractors' websites. Similarly, pricing data for the NASA missions was manually collected from nasa.gov blog posts and compiled for visualization. Certain collaborative efforts were omitted from the visualization when the secondary contribution was minimal and niche. Parts data from SpaceX, similarly, was collected directly from the <a href="http://spacex.com" target="_blank" rel="noreferrer">spacex.com</a> website and provided rocket data.</p>
+        <p>We also used a series of Claude agents to go through and extract quantitative data from a set of books we downloaded from Anna's Archive. These were chosen on the basis of relevance to SpaceX and the space industry; they were <em>Liftoff and Reentry</em>, <em>Rocket Billionaires</em>, and <em>Elon Musk</em>. The results of this were saved to a series of JSON files in order to form our dataset for this analysis. Since we now had quantitative data for SpaceX's costs, we were able to create an estimate for how much the entire Artemis mission would have cost if it had been assembled from purely SpaceX components. Similarly, we were able to create a graph illustrating the comparative gains in efficiency SpaceX experiences over time: since events in the books were portrayed in chronological order (often with dates), the agents were able to assign approximate year dates to the different improvements on SpaceX's part as discussed.</p>
+      </div>
+
+      <div class="doc-section">
+        <h2>Design</h2>
+        <p>We wanted to highlight key points about our conclusion and research in each of the interactions. Such as the diverse set of subcontractors for NASA Artemis II spaceship or the huge money saving potential for companies like SpaceX. Each interaction was meant to grab user attention to highlight this point and have them interact with the graph to further learn about the subject in an engaging way for them. We had a couple of alternatives that proved to be not engaging and abandoned them because they displayed too much information in one graph without providing a clear purpose.</p>
+      </div>
+
+      <div class="doc-section">
+        <h2>Implementation</h2>
+        <p>For our final project, we used several different kinds of tools. We used Adobe Illustrator and Node.js for the rocket diagrams, and D3.js and Chart.js for the other charts. We used the framework Astro for the overall website because we were already familiar with it, and it was especially helpful because we could separate components and text into different files. We collected data in several different ways: manual research, databases, and LLM extraction. For the data that was already organized, it wasn't too challenging to build the visualizations, but for the other types of data, it required creating structures ourselves. One performance issue we ran into was for the map of NASA's contracts. Initially, we set it up so that the webpage would load all the CSV files for every contract year, which resulted in some delay in showing the visualization. However, since the data isn't changing, we realized we could just hardcode the numbers into the chart, and it would load much quicker.</p>
+      </div>
+
+      <div class="doc-section">
+        <h2>Discussion</h2>
+        <p>We would say our final site was very effective in engaging users to interact with the visualization and learn about spaceflight at the same time. Most users were able to clearly see our message and understand the conclusion for our interaction. The main point of confusion was not fully explaining certain aspects like the color coding which to us made sense, but to users did not realize the link between the colors in all the visual interactions. The rocket interaction proved to be a very effective method not only for teaching users but also to engage them to interact with it since it was such a visually striking piece that they found appealing since they are familiar with spaceships already, and was unique enough to capture their attention.</p>
+      </div>
+
+      <div class="doc-section">
+        <h2>Future Work</h2>
+        <p>For future work we would like to include other famous spaceships such as the Falcon SpaceX, Atlas V, and Space Shuttle. As well as a breakdown like we did for the companies behind Artemis for these other famous spaceships as well. This would allow us to use the recent Artemis launch as a starting point for users looking to find out more information about spaceships and serve as an interactive way to learn new facts about spaceships and the economy behind them.</p>
+      </div>
+
+      <div class="doc-section">
+        <h2>Acknowledgements &amp; References</h2>
+        <p>This project was inspired by and based on the <a href="https://www.faa.gov/data_research/commercial_space_data" target="_blank" rel="noreferrer">FAA's Spaceflight Dashboard</a>. Additionally, NASA and SpaceX's making their industrial process transparent was invaluable to our project, and so we appreciate such high standards of openness being pushed by the cutting edge of spaceflight.</p>
+      </div>
+
+    </div>
+  </body>
+</html>
