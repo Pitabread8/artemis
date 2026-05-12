@@ -1,11 +1,13 @@
 ---
-import { rockets, renderRocketSvg, contractorKey, getRocketPriceTotal, formatPriceTotal, minPriceLabel, maxPriceLabel } from '../lib/rocket';
+import { rockets, renderRocketSvg, contractorKey, getRocketPriceTotal, hasRocketPrices, formatPriceTotal, minPriceLabel, maxPriceLabel } from '../lib/rocket';
 
 const rocketSlides = rockets.map((rocket) => ({
   ...rocket,
   svg: renderRocketSvg(rocket),
+  hasPrices: hasRocketPrices(rocket.parts),
   total: formatPriceTotal(getRocketPriceTotal(rocket.parts)),
 }));
+const pricedRocketSlides = rocketSlides.filter((rocket) => rocket.hasPrices);
 ---
 
 <section class="page diagram-panel full-bleed" data-diagram-panel data-initial-mode="contractors" data-slide-count={rocketSlides.length}>
@@ -58,7 +60,7 @@ const rocketSlides = rockets.map((rocket) => ({
       </div>
       <div class="price-total-list" aria-label="Total shown by rocket">
         {
-          rocketSlides.map((rocket) => (
+          pricedRocketSlides.map((rocket) => (
             <p class="price-total">
               {rocket.label}
               <strong>{rocket.total}</strong>

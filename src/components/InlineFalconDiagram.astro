@@ -1,19 +1,10 @@
 ---
-import path from 'node:path';
-import { falconParts, renderRocketSvg } from '../lib/rocket';
+import { rockets, renderRocketSvg } from '../lib/rocket';
 
-const falconRocket = {
-  slug: 'falcon',
-  label: 'Falcon 9',
-  title: 'Falcon 9 vertical integration diagram',
-  desc: 'Interactive Falcon 9 diagram colored to show SpaceX vertical integration.',
-  svgPath: path.join(process.cwd(), 'public', 'rockets', 'falcon', 'falcon-9-diagram-01.svg'),
-  hiddenPartIds: new Set<string>(),
-  hiddenPartGroups: new Set<string>(),
-  parts: falconParts,
-};
-
+const falconRocket = rockets.find((r) => r.slug === 'falcon')!;
 const slide = { label: falconRocket.label, svg: renderRocketSvg(falconRocket) };
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+const spacexLogoSrc = `${basePath}/rockets/falcon/spacex-logo-black.svg`;
 ---
 
 <style is:global>
@@ -64,8 +55,10 @@ const slide = { label: falconRocket.label, svg: renderRocketSvg(falconRocket) };
           <span class="key-copy">
             <img
               class="spacex-logo"
-              src={`${import.meta.env.BASE_URL}rockets/falcon/spacex-logo-black.svg`}
+              src={spacexLogoSrc}
               alt="SpaceX"
+              loading="eager"
+              decoding="async"
             />
           </span>
         </div>
