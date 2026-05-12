@@ -18,7 +18,7 @@ export const contractorStyles: Record<string, { color: string; mergedInto?: stri
 const contractorKeyOrder = [
   'Northrop Grumman', 'Boeing', 'North American Aviation', 'Douglas Aircraft',
   'Lockheed Martin', 'Lockheed Propulsion Co.', 'Aerojet Rocketdyne', 'Rocketdyne',
-  'Teledyne Brown Engineering', 'IBM',
+  'Teledyne Brown Engineering', 'IBM', 'SpaceX',
 ];
 
 export const contractorKey: {
@@ -248,6 +248,10 @@ export function getRocketPriceTotal(parts: Record<string, { priceGroup?: string 
   return Array.from(uniquePriceGroups).reduce((total, group) => total + priceGroups[group].amount, 0);
 }
 
+export function hasRocketPrices(parts: Record<string, { priceGroup?: string }>): boolean {
+  return Object.values(parts).some((part) => Boolean(part.priceGroup) && Boolean(priceGroups[part.priceGroup]));
+}
+
 export function escapeAttr(value: unknown): string {
   return String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
@@ -362,5 +366,15 @@ export const rockets = [
     hiddenPartIds: apolloHiddenPartIds,
     hiddenPartGroups: apolloHiddenPartGroups,
     parts: apolloParts,
+  },
+  {
+    slug: 'falcon',
+    label: 'Falcon 9',
+    title: 'Falcon 9 vertical integration diagram',
+    desc: 'Interactive Falcon 9 diagram colored to show SpaceX vertical integration.',
+    svgPath: path.join(process.cwd(), 'public', 'rockets', 'falcon', 'falcon-9-diagram-01.svg'),
+    hiddenPartIds: new Set<string>(),
+    hiddenPartGroups: new Set<string>(),
+    parts: falconParts,
   },
 ];
