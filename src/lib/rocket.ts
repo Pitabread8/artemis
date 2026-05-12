@@ -8,6 +8,7 @@ export const contractorStyles: Record<string, { color: string; mergedInto?: stri
   'Aerojet Rocketdyne': { color: '#e76f33' },
   'Teledyne Brown Engineering': { color: '#d82f84' },
   IBM: { color: '#6a4cff' },
+  SpaceX: { color: '#d71920' },
   'Lockheed Propulsion Co.': { color: '#7acb98', mergedInto: 'Lockheed Martin' },
   'North American Aviation': { color: '#8ad5f2', mergedInto: 'Boeing' },
   'Douglas Aircraft': { color: '#63c5ea', mergedInto: 'Boeing' },
@@ -169,6 +170,54 @@ export const apolloParts: Record<string, { part: string; contractor: string; not
   'outer-hull': { part: 'Apollo Spacecraft Stack', contractor: 'North American Aviation', note: 'Historical Boeing lineage via North American Aviation.', priceGroup: 'apollo-csm', description: 'The outer stacked spacecraft section combining the command and service modules above the Saturn V launch vehicle.' },
 };
 
+export const falconParts: Record<string, { part: string; contractor: string; note?: string; priceGroup?: string; description: string }> = {
+  fairing: {
+    part: 'Payload Fairing',
+    contractor: 'SpaceX',
+    description: 'Protects the payload during atmospheric flight and separates once Falcon 9 reaches space.',
+  },
+  'second-stage-hull': {
+    part: 'Second Stage',
+    contractor: 'SpaceX',
+    description: 'Carries the payload to its target orbit after stage separation using SpaceX upper-stage structures, tanks, and avionics.',
+  },
+  'lox-tank': {
+    part: 'Liquid Oxygen Tank',
+    contractor: 'SpaceX',
+    description: 'Stores the cryogenic oxidizer used by the Falcon 9 Merlin engines.',
+  },
+  'fuel-tank': {
+    part: 'RP-1 Fuel Tank',
+    contractor: 'SpaceX',
+    description: 'Stores rocket-grade kerosene fuel for the Merlin engine system.',
+  },
+  'mvac-engine': {
+    part: 'Merlin Vacuum Engine',
+    contractor: 'SpaceX',
+    description: 'The vacuum-optimized Merlin engine that powers Falcon 9’s second stage in space.',
+  },
+  interstage: {
+    part: 'Interstage',
+    contractor: 'SpaceX',
+    description: 'Connects the first and second stages before separation and houses hardware used during the staging event.',
+  },
+  'first-stage': {
+    part: 'First Stage',
+    contractor: 'SpaceX',
+    description: 'The reusable booster structure that provides liftoff thrust, houses propellant tanks, and returns for recovery when mission conditions allow.',
+  },
+  'lox-transfer-tube': {
+    part: 'LOX Transfer Tube',
+    contractor: 'SpaceX',
+    description: 'Routes liquid oxygen through the stage so oxidizer can reach the engine section.',
+  },
+  'merlin-engines-9': {
+    part: 'Nine Merlin Engines',
+    contractor: 'SpaceX',
+    description: 'The first-stage engine cluster that provides Falcon 9’s liftoff thrust.',
+  },
+};
+
 export const minPriceAmount = 3000000;
 export const maxPriceAmount = 10000000000;
 export const minPriceLabel = '$3M';
@@ -258,9 +307,9 @@ export function getPriceMeta(info: any) {
 
 export function renderRocketSvg(rocket: any): string {
   const rawSvg = fs.readFileSync(rocket.svgPath, 'utf8');
-  return rawSvg
+  const svg = rawSvg
     .replace('<svg ', `<svg class="rocket-svg rocket-svg--${rocket.slug}" role="img" aria-labelledby="${rocket.slug}-rocket-title ${rocket.slug}-rocket-desc" `)
-    .replace(/<g id="Layer_2"/, `<title id="${rocket.slug}-rocket-title">${rocket.title}</title><desc id="${rocket.slug}-rocket-desc">${rocket.desc}</desc><g id="Layer_2"`)
+    .replace(/<g id="Layer_([12])"/, `<title id="${rocket.slug}-rocket-title">${rocket.title}</title><desc id="${rocket.slug}-rocket-desc">${rocket.desc}</desc><g id="Layer_$1"`)
     .replace(/<g\b([^>]*\bid="([^"]+)"[^>]*)>/g, (match: string, attrs: string, id: string) => {
       if (id === 'Layer_2' || isHiddenPart(rocket, id)) return match;
       const info = lookupPart(id, rocket.parts);
@@ -284,6 +333,13 @@ export function renderRocketSvg(rocket: any): string {
       const cleanAttrs = attrs.replace(/\sclass="[^"]*"/g, '');
       return `<${tag}${cleanAttrs} class="artemis-part" tabindex="0" role="button" style="--part-fill: ${color}" data-part="${escapeAttr(info.part)}" data-contractor="${escapeAttr(info.contractor)}" data-contractor-color="${escapeAttr(color)}" data-description="${escapeAttr(buildDescription(info))}" data-note="${escapeAttr(buildNote(info))}" data-rocket="${escapeAttr(rocket.label)}" data-part-group="${escapeAttr(normalizeId(id))}" data-price-group="${escapeAttr(info.priceGroup ?? '')}" data-price-label="${escapeAttr(pm?.label ?? 'Unavailable')}" data-price-title="${escapeAttr(pm?.title ?? 'Price unavailable')}" data-price-note="${escapeAttr(pm?.note ?? 'No isolated NASA-published part price was found in the reviewed source set.')}" data-price-color="${escapeAttr(pm?.color ?? '#d9ddd9')}" data-price-amount="${escapeAttr(pm?.amount ?? '')}" data-price-source="${escapeAttr(pm?.sourceKey ?? '')}" data-price-estimated="${pm?.estimated ? 'true' : 'false'}" data-price-available="${pm ? 'true' : 'false'}" aria-label="${escapeAttr(`${info.part}: ${info.contractor}`)}"${closing}>`;
     });
+
+  if (svg.includes(`id="${rocket.slug}-rocket-title"`)) return svg;
+
+  return svg.replace(
+    /(<svg\b[^>]*>)/,
+    `$1<title id="${rocket.slug}-rocket-title">${rocket.title}</title><desc id="${rocket.slug}-rocket-desc">${rocket.desc}</desc>`,
+  );
 }
 
 export const rockets = [

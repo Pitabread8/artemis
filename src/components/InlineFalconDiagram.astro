@@ -1,0 +1,93 @@
+---
+import path from 'node:path';
+import { falconParts, renderRocketSvg } from '../lib/rocket';
+
+const falconRocket = {
+  slug: 'falcon',
+  label: 'Falcon 9',
+  title: 'Falcon 9 vertical integration diagram',
+  desc: 'Interactive Falcon 9 diagram colored to show SpaceX vertical integration.',
+  svgPath: path.join(process.cwd(), 'public', 'rockets', 'falcon', 'falcon-9-diagram-01.svg'),
+  hiddenPartIds: new Set<string>(),
+  hiddenPartGroups: new Set<string>(),
+  parts: falconParts,
+};
+
+const slide = { label: falconRocket.label, svg: renderRocketSvg(falconRocket) };
+---
+
+<style is:global>
+  .inline-diagram--falcon { min-height: 650px; }
+
+  .inline-diagram--falcon .panel {
+    width: 160px;
+    padding: 0 6px 88px 0;
+    transform: translateX(calc(-50% - 186px));
+  }
+
+  .inline-diagram--falcon .rocket-svg {
+    width: min(100%, 230px);
+    height: 620px;
+  }
+
+  .inline-diagram--falcon .spacex-logo {
+    display: block;
+    width: 150px;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .inline-diagram--falcon .key-copy span {
+    color: var(--muted);
+    font-size: 0.7rem;
+    line-height: 1.25;
+  }
+
+  @media (max-width: 780px) {
+    .inline-diagram--falcon .rocket-svg { height: auto; }
+  }
+</style>
+
+<section
+  class="inline-diagram inline-diagram--falcon diagram-panel"
+  data-diagram-panel
+  data-initial-mode="contractors"
+  data-no-prices="true"
+  aria-label="Falcon 9 vertical integration diagram"
+>
+  <aside class="panel" aria-label="Falcon 9 vertical integration key">
+    <section class="key contractor-key" aria-labelledby="inline-falcon-title">
+      <h2 id="inline-falcon-title">Key</h2>
+      <div class="key-group">
+        <div class="key-row">
+          <span class="swatch" style="background: #d71920" aria-hidden="true" />
+          <span class="key-copy">
+            <img
+              class="spacex-logo"
+              src={`${import.meta.env.BASE_URL}rockets/falcon/spacex-logo-black.svg`}
+              alt="SpaceX"
+            />
+          </span>
+        </div>
+      </div>
+    </section>
+  </aside>
+
+  <section class="stage" aria-label="Inline Falcon 9 vertical integration diagram">
+    <div class="rocket-shell">
+      <div class="rocket-window">
+        <article class="rocket-slide" aria-label={slide.label}>
+          <span class="rocket-label">{slide.label}</span>
+          <div set:html={slide.svg} />
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <div class="tooltip" data-tooltip aria-hidden="true">
+    <strong data-tooltip-part></strong>
+    <span data-tooltip-contractor></span>
+    <span data-tooltip-price></span>
+    <span data-tooltip-description></span>
+  </div>
+</section>

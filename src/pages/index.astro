@@ -755,6 +755,7 @@ import ArticleText from '../components/ArticleText.mdx';
         const detailsNote = root.querySelector('[data-details-note]');
         const isInlineSimple = root.dataset.inlineSimple === 'true';
         const isInlinePriceSimple = root.dataset.inlinePriceSimple === 'true';
+        const hasPrices = root.dataset.noPrices !== 'true';
         const hasTooltipDescription = Boolean(tooltipDescription);
         const modeButtons = Array.from(root.querySelectorAll('[data-mode-button]'));
         const slider = root.querySelector('[data-rocket-slider]');
@@ -800,14 +801,14 @@ import ArticleText from '../components/ArticleText.mdx';
 
           tooltipPart.textContent = part;
           tooltipContractor.textContent = useSimplifiedPriceHover ? description : `${contractor} · ${rocket}`;
-          tooltipPrice.textContent = priceDisplay.short;
+          tooltipPrice.textContent = hasPrices ? priceDisplay.short : description;
           if (hasTooltipDescription) {
-            tooltipDescription.textContent = useSimplifiedPriceHover ? '' : description;
+            tooltipDescription.textContent = useSimplifiedPriceHover || !hasPrices ? '' : description;
           }
 
           if (detailsName) detailsName.textContent = part;
           if (detailsContractor) detailsContractor.textContent = `${contractor} · ${rocket}`;
-          if (detailsPrice) detailsPrice.textContent = priceDisplay.long;
+          if (detailsPrice) detailsPrice.textContent = hasPrices ? priceDisplay.long : '';
           if (detailsDescription) detailsDescription.textContent = description;
           if (detailsNote) detailsNote.textContent = priceDisplay.note || target.dataset.note || '';
         }
