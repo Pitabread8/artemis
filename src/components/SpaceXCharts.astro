@@ -4,7 +4,7 @@
 <section class="spx-section">
   <div class="spx-wrap">
     <h3 class="spx-h3">Twenty years of SpaceX cost ratios</h3>
-    <p class="spx-lede">Each dot is one cost claim.</p>
+    <p class="spx-lede">Each point on the graph represents one cost claim, or one claim to superior prices made by SpaceX or by a source about SpaceX.</p>
     <div class="spx-legend" id="spx-progress-legend"></div>
     <svg id="spx-progress-chart" viewBox="0 0 920 520"></svg>
     <div class="spx-ctrl">
@@ -164,17 +164,6 @@
     d.jx = n === 1 ? 0 : (i - (n - 1) / 2) * 9;
   });
 
-  const byYear = d3.rollups(PROGRESS_DATA,
-      v => Math.exp(d3.mean(v, d => Math.log(d.ratio!))!), d => d.y)
-    .map(([year, gm]) => ({ year, gm }))
-    .sort((a, b) => a.year - b.year);
-
-  const trendLine = d3.line<{ year: number; gm: number }>()
-    .x(d => px(d.year)).y(d => py(d.gm))
-    .curve(d3.curveMonotoneX);
-
-  pg.append('path').datum(byYear).attr('class', 'spx-trend').attr('d', trendLine);
-
   const dots = pg.selectAll('circle.spx-dot').data(PROGRESS_DATA).enter().append('circle')
     .attr('class', 'spx-dot')
     .attr('cx', d => px(d.y) + d.jx!)
@@ -184,7 +173,7 @@
     .attr('fill-opacity', 0.85)
     .attr('stroke', '#fff').attr('stroke-width', 1.5)
     .on('mouseover', (e, d) => showTip(e,
-      `<b>${d.c}</b><br><span class="spx-muted">${d.y} · ${d.d}</span><br>` +
+      `<b>${d.c}</b><br><span class="spx-muted">${d.y} ${d.d}</span><br>` +
       `${d3.format(',.0f')(d.ratio!)}× cheaper`))
     .on('mousemove', moveTip)
     .on('mouseout', hideTip);
