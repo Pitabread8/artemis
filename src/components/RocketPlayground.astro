@@ -1,9 +1,10 @@
 ---
-import { rockets, renderRocketSvg, contractorKey, minPriceLabel, maxPriceLabel } from '../lib/rocket';
+import { rockets, renderRocketSvg, contractorKey, getRocketPriceTotal, formatPriceTotal, minPriceLabel, maxPriceLabel } from '../lib/rocket';
 
 const rocketSlides = rockets.map((rocket) => ({
   ...rocket,
   svg: renderRocketSvg(rocket),
+  total: formatPriceTotal(getRocketPriceTotal(rocket.parts)),
 }));
 ---
 
@@ -54,6 +55,16 @@ const rocketSlides = rockets.map((rocket) => ({
       <div class="price-scale">
         <span>min: {minPriceLabel}</span>
         <span>max: {maxPriceLabel}</span>
+      </div>
+      <div class="price-total-list" aria-label="Total shown by rocket">
+        {
+          rocketSlides.map((rocket) => (
+            <p class="price-total">
+              {rocket.label}
+              <strong>{rocket.total}</strong>
+            </p>
+          ))
+        }
       </div>
       <p class="price-copy">Price mode uses a power scale to separate high-cost Artemis hardware more aggressively while preserving some contrast among lower-cost parts. Colors map from the minimum to maximum sourced Artemis price values, with subsystem proxies used where NASA only publishes grouped hardware or contract costs.</p>
       <div class="price-missing">

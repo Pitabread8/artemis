@@ -175,6 +175,30 @@ export const minPriceLabel = '$3M';
 export const maxPriceLabel = '$10B';
 const defaultPriceScaleExponent = 0.6;
 
+export function formatPriceTotal(amount: number): string {
+  if (amount >= 1000000000) {
+    const billions = amount / 1000000000;
+    return `$${billions.toFixed(billions >= 10 ? 1 : 2).replace(/\.0$/, '')}B`;
+  }
+
+  if (amount >= 1000000) {
+    const millions = amount / 1000000;
+    return `$${millions.toFixed(millions >= 10 ? 1 : 2).replace(/\.0$/, '')}M`;
+  }
+
+  return `$${amount.toLocaleString('en-US')}`;
+}
+
+export function getRocketPriceTotal(parts: Record<string, { priceGroup?: string }>): number {
+  const uniquePriceGroups = new Set(
+    Object.values(parts)
+      .map((part) => part.priceGroup)
+      .filter((group): group is string => Boolean(group) && Boolean(priceGroups[group])),
+  );
+
+  return Array.from(uniquePriceGroups).reduce((total, group) => total + priceGroups[group].amount, 0);
+}
+
 export function escapeAttr(value: unknown): string {
   return String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }

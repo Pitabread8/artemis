@@ -1,8 +1,9 @@
 ---
-import { rockets, renderRocketSvg, minPriceLabel, maxPriceLabel } from '../lib/rocket';
+import { rockets, renderRocketSvg, getRocketPriceTotal, formatPriceTotal, minPriceLabel, maxPriceLabel } from '../lib/rocket';
 
 const artemisRocket = rockets.find((r) => r.slug === 'artemis')!;
 const slide = { label: artemisRocket.label, svg: renderRocketSvg(artemisRocket) };
+const artemisTotal = formatPriceTotal(getRocketPriceTotal(artemisRocket.parts));
 ---
 
 <style is:global>
@@ -50,6 +51,8 @@ const slide = { label: artemisRocket.label, svg: renderRocketSvg(artemisRocket) 
   .inline-diagram .price-legend h2 { margin-bottom: 2px; font-size: 0.72rem; }
   .inline-diagram .price-gradient { height: 12px; }
   .inline-diagram .price-scale { gap: 6px; font-size: 0.68rem; line-height: 1.2; }
+  .inline-diagram .price-total { margin: 2px 0 0; font-size: 0.74rem; line-height: 1.25; color: var(--ink); }
+  .inline-diagram .price-total strong { display: block; font-size: 0.9rem; }
 
   .inline-diagram .key { gap: 8px; }
   .inline-diagram .key h2 { margin-bottom: 2px; font-size: 0.72rem; }
@@ -99,6 +102,10 @@ const slide = { label: artemisRocket.label, svg: renderRocketSvg(artemisRocket) 
         <span>min: {minPriceLabel}</span>
         <span>max: {maxPriceLabel}</span>
       </div>
+      <p class="price-total">
+        Total shown
+        <strong>{artemisTotal}</strong>
+      </p>
     </section>
   </aside>
 

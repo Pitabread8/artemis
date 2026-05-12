@@ -1,60 +1,62 @@
 ---
-import { rockets, renderRocketSvg, contractorKey, artemisParts, getRocketPriceTotal, formatPriceTotal, minPriceLabel, maxPriceLabel } from '../lib/rocket';
+import { rockets, renderRocketSvg, contractorKey, apolloParts, getRocketPriceTotal, formatPriceTotal, minPriceLabel, maxPriceLabel } from '../lib/rocket';
 
+const apolloRocket = rockets.find((r) => r.slug === 'apollo')!;
+const slide = { label: apolloRocket.label, svg: renderRocketSvg(apolloRocket) };
+const apolloTotal = formatPriceTotal(getRocketPriceTotal(apolloRocket.parts));
 
-const artemisRocket = rockets.find((r) => r.slug === 'artemis')!;
-const slide = { label: artemisRocket.label, svg: renderRocketSvg(artemisRocket) };
-const artemisTotal = formatPriceTotal(getRocketPriceTotal(artemisRocket.parts));
-
-const artemisContractors = new Set(Object.values(artemisParts).map((p) => p.contractor));
-const artemisContractorKey = contractorKey
-  .filter((item) => artemisContractors.has(item.name))
+const apolloContractors = new Set(Object.values(apolloParts).map((p) => p.contractor));
+const apolloContractorKey = contractorKey
   .map((item) => ({
     ...item,
-    children: item.children.filter((child) => artemisContractors.has(child.name)),
-  }));
+    children: item.children.filter((child) => apolloContractors.has(child.name)),
+  }))
+  .filter((item) => apolloContractors.has(item.name) || item.children.length > 0);
 ---
 
 <style is:global>
-  .inline-diagram--parts { min-height: 620px; }
+  .inline-diagram--apollo { min-height: 660px; }
 
-  .inline-diagram--parts .panel {
-    width: 182px;
-    padding: 0 6px 86px 0;
-    transform: translateX(calc(-50% - 204px));
+  .inline-diagram--apollo .panel {
+    width: 188px;
+    padding: 0 6px 74px 0;
+    transform: translateX(calc(-50% - 210px));
   }
 
-  .inline-diagram--parts .mode-toggle {
+  .inline-diagram--apollo .mode-toggle {
     position: absolute;
     left: 50%;
-    bottom: 64px;
-    transform: translateX(112px);
+    bottom: 66px;
+    transform: translateX(118px);
     width: auto;
   }
 
-  .inline-diagram--parts .mode-button { padding: 6px 11px; font-size: 0.66rem; }
-  .inline-diagram--parts .key-row { font-size: 0.74rem; }
+  .inline-diagram--apollo .mode-button { padding: 6px 11px; font-size: 0.66rem; }
+  .inline-diagram--apollo .key-row { font-size: 0.72rem; }
+  .inline-diagram--apollo .rocket-svg { width: min(100%, 360px); height: 640px; }
 
   @media (max-width: 780px) {
-    .inline-diagram--parts .mode-toggle {
+    .inline-diagram--apollo .mode-toggle {
       position: static;
       transform: none;
       justify-self: start;
       margin-top: 4px;
     }
+
+    .inline-diagram--apollo .rocket-svg { height: auto; }
   }
 </style>
 
 <section
-  class="inline-diagram inline-diagram--parts diagram-panel"
+  class="inline-diagram inline-diagram--apollo diagram-panel"
   data-diagram-panel
   data-initial-mode="contractors"
   data-inline-price-simple="true"
-  aria-label="Diagram 2: Artemis II parts diagram"
+  aria-label="Apollo Saturn V contractor and price diagram"
 >
-  <aside class="panel" aria-label="Artemis II contractor key">
-    <section class="price-legend" aria-labelledby="inline-parts-price-title">
-      <h2 id="inline-parts-price-title">Price Scale</h2>
+  <aside class="panel" aria-label="Apollo Saturn V contractor key">
+    <section class="price-legend" aria-labelledby="inline-apollo-price-title">
+      <h2 id="inline-apollo-price-title">Price Scale</h2>
       <div class="price-gradient" aria-hidden="true"></div>
       <div class="price-scale">
         <span>min: {minPriceLabel}</span>
@@ -62,14 +64,14 @@ const artemisContractorKey = contractorKey
       </div>
       <p class="price-total">
         Total shown
-        <strong>{artemisTotal}</strong>
+        <strong>{apolloTotal}</strong>
       </p>
     </section>
 
-    <section class="key contractor-key" aria-labelledby="inline-contractor-title">
-      <h2 id="inline-contractor-title">Key</h2>
+    <section class="key contractor-key" aria-labelledby="inline-apollo-contractor-title">
+      <h2 id="inline-apollo-contractor-title">Key</h2>
       {
-        artemisContractorKey.map((item) => (
+        apolloContractorKey.map((item) => (
           <div class="key-group">
             <div class="key-row">
               <span class="swatch" style={`background: ${item.color}`} aria-hidden="true" />
@@ -95,9 +97,9 @@ const artemisContractorKey = contractorKey
     </section>
   </aside>
 
-  <section class="stage" aria-label="Inline Artemis II parts diagram">
+  <section class="stage" aria-label="Inline Apollo Saturn V diagram">
     <div class="rocket-shell">
-      <div class="mode-toggle" role="tablist" aria-label="Diagram 2 data mode">
+      <div class="mode-toggle" role="tablist" aria-label="Apollo diagram data mode">
         <button class="mode-button is-active" type="button" data-mode-button data-mode="contractors" aria-selected="true">Contractors</button>
         <button class="mode-button" type="button" data-mode-button data-mode="prices" aria-selected="false">Prices</button>
       </div>
