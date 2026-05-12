@@ -8,4 +8,5 @@ export default defineConfig({
   site: 'https://pitabread8.github.io',
   base: '/artemis',
   integrations: [mdx()],
+  output: 'static',
 });
